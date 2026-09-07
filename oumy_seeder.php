@@ -1,6 +1,8 @@
 <?php
 
+
 require __DIR__ . '/vendor/autoload.php';
+
 
 $capsule = require __DIR__ . '/config/database.php';
 
@@ -20,7 +22,10 @@ if (!$schema->hasTable('seeders')) {
     echo "Table technique 'seeders' créée.\n";
 }
 
+
+
 $seederPath = __DIR__ . '/database/seeder';
+
 
 if (!is_dir($seederPath)) {
 
@@ -28,6 +33,7 @@ if (!is_dir($seederPath)) {
 
     exit(1);
 }
+
 
 $seeders = glob($seederPath . '/*.php');
 
@@ -41,27 +47,17 @@ if (empty($seeders)) {
 }
 
 
+
 foreach ($seeders as $seeder) {
 
     $seederName = basename($seeder);
 
-    $alreadyExecuted = $capsule
-        ->table('seeders')
-        ->where('seeder', $seederName)
-        ->exists();
-
-
-    if ($alreadyExecuted) {
-
-        echo "Seeder : {$seederName} ... SKIP\n";
-
-        continue;
-    }
-
     echo "Seeder : {$seederName} ... ";
+
 
     try {
 
+        
         $seederFunction = require $seeder;
 
         if (!is_callable($seederFunction)) {
@@ -70,14 +66,21 @@ foreach ($seeders as $seeder) {
                 "Le seeder {$seederName} doit retourner une fonction."
             );
         }
-
         $seederFunction($capsule);
-
-        $capsule
+        
+        $alreadyRecorded = $capsule
             ->table('seeders')
-            ->insert([
-                'seeder' => $seederName,
-            ]);
+            ->where('seeder', $seederName)
+            ->exists();
+
+        if (!$alreadyRecorded) {
+
+            $capsule
+                ->table('seeders')
+                ->insert([
+                    'seeder' => $seederName,
+                ]);
+        }
 
 
         echo "OK\n";
