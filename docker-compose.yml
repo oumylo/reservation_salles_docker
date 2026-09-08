@@ -1,5 +1,8 @@
 services:
   php:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: reservation-salles-php:dev
     volumes:
       - ./:/var/www/html

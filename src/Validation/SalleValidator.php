@@ -11,16 +11,16 @@ class SalleValidator implements ValidatorInterface
         $errors = [];
         $acceptedData = [];
 
+
         $nomValide = v::stringType()
             ->notEmpty()
             ->length(2, 100)
             ->validate($data['nom'] ?? null);
 
         if (!$nomValide) {
-            $errors['nom'][] =
+            $errors['nom'] =
                 'Le nom est obligatoire et doit contenir entre 2 et 100 caractères.';
         } else {
-           
             $acceptedData['nom'] = $data['nom'];
         }
 
@@ -30,7 +30,7 @@ class SalleValidator implements ValidatorInterface
             ->validate($data['batiment'] ?? null);
 
         if (!$batimentValide) {
-            $errors['batiment'][] =
+            $errors['batiment'] =
                 'Le bâtiment est obligatoire et doit contenir entre 2 et 100 caractères.';
         } else {
             $acceptedData['batiment'] = $data['batiment'];
@@ -41,7 +41,7 @@ class SalleValidator implements ValidatorInterface
             ->validate($data['capacite'] ?? null);
 
         if (!$capaciteValide) {
-            $errors['capacite'][] =
+            $errors['capacite'] =
                 'La capacité doit être un entier compris entre 1 et 1000.';
         } else {
             $acceptedData['capacite'] = $data['capacite'];
@@ -59,7 +59,7 @@ class SalleValidator implements ValidatorInterface
             ->validate($data['type'] ?? null);
 
         if (!$typeValide) {
-            $errors['type'][] = 'Le type de salle est invalide.';
+            $errors['type'] = 'Le type de salle est invalide.';
         } else {
             $acceptedData['type'] = $data['type'];
         }
@@ -68,12 +68,15 @@ class SalleValidator implements ValidatorInterface
             ->validate($data['active'] ?? null);
 
         if (!$activeValide) {
-            $errors['active'][] =
+            $errors['active'] =
                 'Le champ active doit être un booléen.';
         } else {
             $acceptedData['active'] = $data['active'];
         }
 
-        return new ValidationResult($errors, $acceptedData);
+        return new ValidationResult(
+            $errors,
+            $acceptedData
+        );
     }
 }

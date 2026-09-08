@@ -35,20 +35,23 @@ class ReservationController
 
         if ($reservation === null) {
             http_response_code(404);
+
             require dirname(__DIR__, 2) . '/templates/error/404.php';
+
             return;
         }
 
         require dirname(__DIR__, 2) . '/templates/reservation/show.php';
     }
 
-  
     public function create(): void
     {
         $salles = $this->salleRepository->lister();
 
         $errors = [];
         $data = [];
+
+        $action = '/reservations';
 
         require dirname(__DIR__, 2) . '/templates/reservation/form.php';
     }
@@ -65,7 +68,10 @@ class ReservationController
 
             $salles = $this->salleRepository->lister();
 
+            $action = '/reservations';
+
             require dirname(__DIR__, 2) . '/templates/reservation/form.php';
+
             return;
         }
 
@@ -84,6 +90,7 @@ class ReservationController
             $this->creerReservationService->executer($dto);
 
             header('Location: /reservations');
+
             exit;
 
         } catch (SalleIndisponibleException $e) {
@@ -92,12 +99,15 @@ class ReservationController
             ];
 
             $data = $validatedData;
+
             $salles = $this->salleRepository->lister();
+
+           
+            $action = '/reservations';
 
             require dirname(__DIR__, 2) . '/templates/reservation/form.php';
         }
     }
-
 
     public function cancel(int $id): void
     {
@@ -105,10 +115,12 @@ class ReservationController
             $this->annulerReservationService->executer($id);
 
             header('Location: /reservations');
+
             exit;
 
         } catch (ReservationIntrouvableException $e) {
             http_response_code(404);
+
             require dirname(__DIR__, 2) . '/templates/error/404.php';
         }
     }

@@ -5,19 +5,99 @@ $title = 'Liste des salles';
 ob_start();
 ?>
 
-<h1>Liste des salles</h1>
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #2563eb;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .btn:hover {
+        background-color: #1d4ed8;
+    }
+
+    .empty-message {
+        padding: 16px;
+        background-color: #f3f4f6;
+        border-radius: 6px;
+        color: #4b5563;
+    }
+
+    table.salles-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+    table.salles-table thead {
+        background-color: #f9fafb;
+    }
+
+    table.salles-table th,
+    table.salles-table td {
+        padding: 10px 12px;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+    }
+
+    table.salles-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-active {
+        background-color: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-inactive {
+        background-color: #fee2e2;
+        color: #991b1b;
+    }
+
+    .link-action {
+        color: #2563eb;
+        text-decoration: none;
+    }
+
+    .link-action:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="page-header">
+    <h1>Liste des salles</h1>
+</div>
 
 <p>
-    <a href="/salles/create">Ajouter une salle</a>
+    <a href="/salles/create" class="btn">Ajouter une salle</a>
 </p>
 
 <?php if (empty($salles)): ?>
 
-    <p>Aucune salle disponible.</p>
+    <p class="empty-message">Aucune salle disponible.</p>
 
 <?php else: ?>
 
-    <table border="1">
+    <table class="salles-table" border="1">
         <thead>
             <tr>
                 <th>Nom</th>
@@ -51,11 +131,13 @@ ob_start();
                 </td>
 
                 <td>
-                    <?= $salle->active ? 'Active' : 'Inactive' ?>
+                    <span class="badge <?= $salle->active ? 'badge-active' : 'badge-inactive' ?>">
+                        <?= $salle->active ? 'Active' : 'Inactive' ?>
+                    </span>
                 </td>
 
                 <td>
-                    <a href="/salles/<?= (int) $salle->id ?>">
+                    <a class="link-action" href="/salles/<?= (int) $salle->id ?>">
                         Voir
                     </a>
                 </td>
