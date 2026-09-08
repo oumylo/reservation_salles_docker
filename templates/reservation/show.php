@@ -5,102 +5,148 @@ $title = 'Détail de la réservation';
 ob_start();
 ?>
 
-<h1>Détail de la réservation</h1>
+<div class="page-header">
+    <div>
+        <h1>Détail de la réservation</h1>
 
-<ul>
 
-    <li>
-        <strong>Salle :</strong>
+    <p class="page-subtitle">
+        Informations concernant cette réservation.
+    </p>
+</div>
 
+
+</div>
+
+<ul class="detail-list">
+
+
+<li>
+    <strong>Salle :</strong>
+
+    <span>
         <?= htmlspecialchars(
             $reservation->salle?->nom ?? 'Salle inconnue',
             ENT_QUOTES,
             'UTF-8'
         ) ?>
-    </li>
+    </span>
+</li>
 
-    <li>
-        <strong>Responsable :</strong>
+<li>
+    <strong>Responsable :</strong>
 
+    <span>
         <?= htmlspecialchars(
             $reservation->responsable,
             ENT_QUOTES,
             'UTF-8'
         ) ?>
-    </li>
+    </span>
+</li>
 
-    <li>
-        <strong>Email :</strong>
+<li>
+    <strong>Email :</strong>
 
+    <span>
         <?= htmlspecialchars(
             $reservation->email,
             ENT_QUOTES,
             'UTF-8'
         ) ?>
-    </li>
+    </span>
+</li>
 
-    <li>
-        <strong>Motif :</strong>
+<li>
+    <strong>Motif :</strong>
 
+    <span>
         <?= htmlspecialchars(
             $reservation->motif,
             ENT_QUOTES,
             'UTF-8'
         ) ?>
-    </li>
+    </span>
+</li>
 
-    <li>
-        <strong>Date de début :</strong>
+<li>
+    <strong>Date de début :</strong>
 
+    <span>
         <?= htmlspecialchars(
             $reservation->date_debut->format('d/m/Y H:i'),
             ENT_QUOTES,
             'UTF-8'
         ) ?>
-    </li>
+    </span>
+</li>
 
-    <li>
-        <strong>Date de fin :</strong>
+<li>
+    <strong>Date de fin :</strong>
 
+    <span>
         <?= htmlspecialchars(
             $reservation->date_fin->format('d/m/Y H:i'),
             ENT_QUOTES,
             'UTF-8'
         ) ?>
-    </li>
+    </span>
+</li>
 
-    <li>
-        <strong>Statut :</strong>
+<li>
+    <strong>Statut :</strong>
 
-        <?= htmlspecialchars(
-            $reservation->statut,
-            ENT_QUOTES,
-            'UTF-8'
-        ) ?>
-    </li>
+    <span>
+        <?php if ($reservation->statut === 'confirmée'): ?>
+
+            <span class="badge badge-success">
+                Confirmée
+            </span>
+
+        <?php else: ?>
+
+            <span class="badge badge-danger">
+                Annulée
+            </span>
+
+        <?php endif; ?>
+    </span>
+</li>
+
 
 </ul>
 
+<div class="detail-actions">
+
+
 <?php if ($reservation->statut === 'confirmée'): ?>
 
-    <form method="POST"
-          action="/reservations/<?= (int) $reservation->id ?>/cancel">
-
-        <button type="submit">
+    <form
+        method="POST"
+        action="/reservations/<?= (int) $reservation->id ?>/cancel"
+    >
+        <button
+            type="submit"
+            class="btn btn-danger"
+        >
             Annuler la réservation
         </button>
-
     </form>
 
 <?php endif; ?>
 
-<p>
-    <a href="/reservations">
-        Retour à la liste
-    </a>
-</p>
+<a
+    href="/reservations"
+    class="btn btn-secondary"
+>
+    Retour à la liste
+</a>
+
+
+</div>
 
 <?php
 $content = ob_get_clean();
 
 require dirname(__DIR__) . '/layout/base.php';
+?>

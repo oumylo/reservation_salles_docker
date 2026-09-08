@@ -5,19 +5,32 @@ $title = 'Liste des réservations';
 ob_start();
 ?>
 
-<h1>Liste des réservations</h1>
+    <div class="page-header">
+        <div>
+            <h1>Liste des réservations</h1>
 
-<p>
-    <a href="/reservations/create">Nouvelle réservation</a>
-</p>
+            <p class="page-subtitle"> Consultez les réservations des salles universitaires. </p>
+        </div>
 
-<?php if (empty($reservations)): ?>
+        <a href="/reservations/create" class="btn"> Nouvelle réservation </a>
+    </div>
 
-    <p>Aucune réservation trouvée.</p>
+    <?php if (empty($reservations)): ?>
 
-<?php else: ?>
+    <div class="empty-state">
+        <p>Aucune réservation trouvée.</p>
 
-    <table border="1">
+        <a href="/reservations/create" class="btn">
+            Créer une réservation
+        </a>
+    </div>
+
+    <?php else: ?>
+
+<div class="table-wrapper">
+
+    <table class="data-table">
+
         <thead>
             <tr>
                 <th>Salle</th>
@@ -36,43 +49,89 @@ ob_start();
         <?php foreach ($reservations as $reservation): ?>
 
             <tr>
+
                 <td>
-                    <?= htmlspecialchars( $reservation->salle?->nom ?? 'Salle inconnue', ENT_QUOTES, 'UTF-8' ) ?>
+                    <?= htmlspecialchars(
+                        $reservation->salle?->nom ?? 'Salle inconnue',
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </td>
 
                 <td>
-                    <?= htmlspecialchars(  $reservation->responsable, ENT_QUOTES, 'UTF-8' ) ?>
+                    <?= htmlspecialchars(
+                        $reservation->responsable,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </td>
 
                 <td>
-                    <?= htmlspecialchars( $reservation->email,ENT_QUOTES, 'UTF-8') ?>
+                    <?= htmlspecialchars(
+                        $reservation->email,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </td>
 
                 <td>
-                    <?= htmlspecialchars(  $reservation->motif, ENT_QUOTES,'UTF-8') ?>
+                    <?= htmlspecialchars(
+                        $reservation->motif,
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </td>
 
                 <td>
-                    <?= htmlspecialchars( $reservation->date_debut->format('d/m/Y H:i'), ENT_QUOTES, 'UTF-8' ) ?>
+                    <?= htmlspecialchars(
+                        $reservation->date_debut->format('d/m/Y H:i'),
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </td>
 
                 <td>
-                    <?= htmlspecialchars( $reservation->date_fin->format('d/m/Y H:i'), ENT_QUOTES, 'UTF-8') ?>
+                    <?= htmlspecialchars(
+                        $reservation->date_fin->format('d/m/Y H:i'),
+                        ENT_QUOTES,
+                        'UTF-8'
+                    ) ?>
                 </td>
 
                 <td>
-                    <?= htmlspecialchars( $reservation->statut, ENT_QUOTES, 'UTF-8') ?>
+
+                    <?php if ($reservation->statut === 'confirmée'): ?>
+
+                        <span class="badge badge-success">
+                            Confirmée
+                        </span>
+
+                    <?php else: ?>
+
+                        <span class="badge badge-danger">
+                            Annulée
+                        </span>
+
+                    <?php endif; ?>
+
                 </td>
 
                 <td>
-                    <a href="/reservations/<?= (int) $reservation->id ?>">  Voir </a>
+                    <a href="/reservations/<?= (int) $reservation->id ?>" class="link-action">
+                        Voir
+                    </a>
                 </td>
+
             </tr>
 
         <?php endforeach; ?>
 
         </tbody>
+
     </table>
+
+</div>
+
 
 <?php endif; ?>
 
@@ -80,3 +139,4 @@ ob_start();
 $content = ob_get_clean();
 
 require dirname(__DIR__) . '/layout/base.php';
+?>

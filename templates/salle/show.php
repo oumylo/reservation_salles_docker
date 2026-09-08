@@ -1,44 +1,80 @@
-<?php
+    <?php
 
-$title = 'Détail de la salle';
+    $title = 'Détail de la salle';
 
-ob_start();
-?>
+    ob_start();
+    ?>
 
-<h1>Détail de la salle</h1>
+    <div class="page-header">
+        <div>
+            <h1>Détail de la salle</h1>
+        <p class="page-subtitle">
+            Informations concernant cette salle.
+        </p>
+    </div>
 
-<ul>
+    </div>
+
+    <ul class="detail-list">
+
     <li>
         <strong>Nom :</strong>
-        <?= htmlspecialchars($salle->nom, ENT_QUOTES, 'UTF-8') ?>
+
+        <span>
+            <?= htmlspecialchars(
+                $salle->nom,
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>
+        </span>
     </li>
 
     <li>
         <strong>Bâtiment :</strong>
-        <?= htmlspecialchars($salle->batiment, ENT_QUOTES, 'UTF-8') ?>
+
+        <span>
+            <?= htmlspecialchars(
+                $salle->batiment,
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>
+        </span>
     </li>
 
     <li>
         <strong>Capacité :</strong>
-        <?= (int) $salle->capacite ?>
+
+        <span>
+            <?= (int) $salle->capacite ?> personnes
+        </span>
     </li>
 
     <li>
         <strong>Type :</strong>
-        <?= htmlspecialchars($salle->type, ENT_QUOTES, 'UTF-8') ?>
+
+        <span>
+            <?= htmlspecialchars( $salle->type, ENT_QUOTES, 'UTF-8' ) ?>
+        </span>
     </li>
 
     <li>
         <strong>État :</strong>
-        <?= $salle->active ? 'Active' : 'Inactive' ?>
+        <span>
+            <?php if ($salle->active): ?>
+                <span class="badge badge-active"> Active </span>
+            <?php else: ?>
+                <span class="badge badge-inactive"> Inactive </span>
+            <?php endif; ?>
+        </span>
     </li>
-</ul>
+    </ul>
 
-<p>
-    <a href="/salles">Retour à la liste</a>
-</p>
+<div class="detail-actions">
+    <a href="/salles" class="btn btn-secondary"> Retour à la liste </a>
+</div>
 
-<?php
-$content = ob_get_clean();
+    <?php
+    $content = ob_get_clean();
 
-require dirname(__DIR__) . '/layout/base.php';
+    require dirname(__DIR__) . '/layout/base.php';
+    ?>
