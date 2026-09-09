@@ -11,7 +11,6 @@ class SalleValidator implements ValidatorInterface
         $errors = [];
         $acceptedData = [];
 
-
         $nomValide = v::stringType()
             ->notEmpty()
             ->length(2, 100)
@@ -36,15 +35,21 @@ class SalleValidator implements ValidatorInterface
             $acceptedData['batiment'] = $data['batiment'];
         }
 
-        $capaciteValide = v::intVal()
-            ->between(1, 1000)
-            ->validate($data['capacite'] ?? null);
+        $capacite = $data['capacite'] ?? null;
 
-        if (!$capaciteValide) {
+        $capaciteValide = v::stringType()
+            ->digit()
+            ->validate($capacite);
+
+        if (
+            !$capaciteValide
+            || (int) $capacite < 1
+            || (int) $capacite > 1000
+        ) {
             $errors['capacite'] =
                 'La capacité doit être un entier compris entre 1 et 1000.';
         } else {
-            $acceptedData['capacite'] = $data['capacite'];
+            $acceptedData['capacite'] = (int) $capacite;
         }
 
         $typesAutorises = [

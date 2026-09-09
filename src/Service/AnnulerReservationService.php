@@ -15,7 +15,6 @@ class AnnulerReservationService
 
     public function executer(int $reservationId): Reservation
     {
-        
         $reservation = $this->reservationRepository->trouver($reservationId);
 
         if ($reservation === null) {

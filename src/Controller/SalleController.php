@@ -3,15 +3,20 @@
 namespace App\Controller;
 
 use App\DTO\CreerSalleDTO;
-use App\Model\Salle;
 use App\Repository\SalleRepositoryInterface;
 use App\Validation\SalleValidator;
+use App\Exception\SalleAvecReservationsException;
+use App\Exception\SalleNonTrouveeException;
+use App\Service\CreerSalleService;
+use App\Service\SupprimerSalleService;
 
 class SalleController
 {
     public function __construct(
         private SalleRepositoryInterface $salleRepository,
-        private SalleValidator $validator
+        private SalleValidator $validator,
+        private CreerSalleService $creerSalleService,
+        private SupprimerSalleService $supprimerSalleService
     ) {
     }
 
@@ -77,17 +82,7 @@ class SalleController
             $validatedData['active']
         );
 
-        $salle = new Salle();
-
-        $salle->fill([
-            'nom' => $dto->nom,
-            'batiment' => $dto->batiment,
-            'capacite' => $dto->capacite,
-            'type' => $dto->type,
-            'active' => $dto->active,
-        ]);
-
-        $this->salleRepository->enregistrer($salle);
+        $this->creerSalleService->executer($dto);
 
         header('Location: /salles');
 
@@ -175,4 +170,32 @@ class SalleController
 
         exit;
     }
+
+
+    public function delete(int $id): void
+    {
+        try {
+            $this->supprimerSalleService->executer($id);
+
+            header('Location: /salles');
+
+            exit;
+        } catch (SalleNonTrouveeException $exception) {
+            http_response_code(404);
+
+            require dirname(__DIR__, 2) . '/templates/error/404.php';
+
+            return;
+        } catch (SalleAvecReservationsException $exception) {
+            $messageErreur = $exception->getMessage();
+
+            $salles = $this->salleRepository->lister();
+
+            require dirname(__DIR__, 2) . '/templates/salle/index.php';
+
+            return;
+        }
+    }
+
+
 }

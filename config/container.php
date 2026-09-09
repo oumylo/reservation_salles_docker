@@ -1,14 +1,16 @@
 <?php
 
 use App\Application;
-use App\Controller\ReservationController;
-use App\Controller\SalleController;
 use App\Repository\ReservationRepository;
 use App\Repository\ReservationRepositoryInterface;
 use App\Repository\SalleRepository;
 use App\Repository\SalleRepositoryInterface;
 use App\Service\AnnulerReservationService;
+use App\Service\AnnulerReservationServiceInterface;
 use App\Service\CreerReservationService;
+use App\Service\CreerReservationServiceInterface;
+use App\Service\SupprimerSalleService;
+use App\Service\SupprimerSalleServiceInterface;
 use App\Validation\ReservationValidator;
 use App\Validation\SalleValidator;
 use FastRoute\Dispatcher;
@@ -18,9 +20,9 @@ use function DI\autowire;
 
 return [
 
-    Capsule::class => function (): Capsule 
-    { 
-        return require dirname(__DIR__) . '/config/database.php'; 
+    Capsule::class => function (): Capsule
+    {
+        return require dirname(__DIR__) . '/config/database.php';
     },
 
     SalleRepositoryInterface::class => autowire(SalleRepository::class),
@@ -31,13 +33,11 @@ return [
 
     ReservationValidator::class => autowire(),
 
-    CreerReservationService::class => autowire(),
+    CreerReservationServiceInterface::class => autowire(CreerReservationService::class),
 
-    AnnulerReservationService::class => autowire(),
+    AnnulerReservationServiceInterface::class => autowire(AnnulerReservationService::class),
 
-    SalleController::class => autowire(),
-
-    ReservationController::class => autowire(),
+    SupprimerSalleServiceInterface::class => autowire(SupprimerSalleService::class),
 
     Dispatcher::class => function (): Dispatcher {
 
@@ -51,16 +51,5 @@ return [
         );
     },
 
-    Application::class => function (
-    Dispatcher $dispatcher,
-    SalleController $salleController,
-    ReservationController $reservationController,
-    Capsule $capsule
-    ): Application {
-        return new Application(
-            $dispatcher,
-            $salleController,
-            $reservationController
-        );
-    },
+    Application::class => autowire(),
 ];

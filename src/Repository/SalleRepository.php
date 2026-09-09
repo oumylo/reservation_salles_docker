@@ -25,4 +25,15 @@ class SalleRepository implements SalleRepositoryInterface
 
         return $salle;
     }
+
+    public function supprimer(int $id): bool
+    {
+        $salle = $this->trouver($id);
+
+        if ($salle === null) {
+            return false;
+        }
+
+        return $salle->delete();
+    }
 }

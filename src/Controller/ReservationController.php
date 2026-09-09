@@ -29,6 +29,7 @@ class ReservationController
         require dirname(__DIR__, 2) . '/templates/reservation/index.php';
     }
 
+
     public function show(int $id): void
     {
         $reservation = $this->reservationRepository->trouver($id);
@@ -44,20 +45,19 @@ class ReservationController
         require dirname(__DIR__, 2) . '/templates/reservation/show.php';
     }
 
+  
     public function create(): void
     {
-        $salles = $this->salleRepository->lister();
-
         $errors = [];
         $data = [];
 
-        $action = '/reservations';
-
-        require dirname(__DIR__, 2) . '/templates/reservation/form.php';
+        $this->afficherFormulaire($data, $errors);
     }
 
+ 
     public function store(): void
     {
+        
         $data = $_POST;
 
         $result = $this->validator->validate($data);
@@ -66,11 +66,7 @@ class ReservationController
             $errors = $result->errors();
             $data = $result->data();
 
-            $salles = $this->salleRepository->lister();
-
-            $action = '/reservations';
-
-            require dirname(__DIR__, 2) . '/templates/reservation/form.php';
+            $this->afficherFormulaire($data, $errors);
 
             return;
         }
@@ -87,41 +83,49 @@ class ReservationController
         );
 
         try {
+          
             $this->creerReservationService->executer($dto);
 
             header('Location: /reservations');
-
             exit;
 
-        } catch (SalleIndisponibleException $e) {
+        } catch (SalleIndisponibleException $exception) {
+
             $errors = [
-                'date_debut' => $e->getMessage()
+                'date_debut' => $exception->getMessage()
             ];
 
             $data = $validatedData;
 
-            $salles = $this->salleRepository->lister();
-
-           
-            $action = '/reservations';
-
-            require dirname(__DIR__, 2) . '/templates/reservation/form.php';
+            $this->afficherFormulaire($data, $errors);
         }
     }
 
     public function cancel(int $id): void
     {
         try {
+         
             $this->annulerReservationService->executer($id);
 
             header('Location: /reservations');
-
             exit;
 
-        } catch (ReservationIntrouvableException $e) {
+        } catch (ReservationIntrouvableException $exception) {
+
             http_response_code(404);
 
             require dirname(__DIR__, 2) . '/templates/error/404.php';
+
+            return;
         }
+    }
+
+    private function afficherFormulaire( array $data, array $errors ): void {
+      
+        $salles = $this->salleRepository->lister();
+
+        $action = '/reservations';
+
+        require dirname(__DIR__, 2) . '/templates/reservation/form.php';
     }
 }

@@ -19,7 +19,10 @@ class ReservationRepository implements ReservationRepositoryInterface
         return Reservation::find($id);
     }
 
-    public function rechercherConflit(int $salleId, \DateTimeImmutable $dateDebut, \DateTimeImmutable $dateFin
+    public function rechercherConflit(
+        int $salleId,
+        \DateTimeImmutable $dateDebut,
+        \DateTimeImmutable $dateFin
     ): bool {
         return Reservation::query()
             ->where('salle_id', $salleId)
@@ -29,7 +32,13 @@ class ReservationRepository implements ReservationRepositoryInterface
             ->exists();
     }
 
-   
+    public function existePourSalle(int $salleId): bool
+    {
+        return Reservation::query()
+            ->where('salle_id', $salleId)
+            ->exists();
+    }
+
     public function enregistrer(Reservation $reservation): Reservation
     {
         $reservation->save();
@@ -37,7 +46,6 @@ class ReservationRepository implements ReservationRepositoryInterface
         return $reservation;
     }
 
-   
     public function annuler(int $id): bool
     {
         $reservation = $this->trouver($id);

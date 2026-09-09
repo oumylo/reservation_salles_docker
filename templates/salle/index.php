@@ -3,9 +3,11 @@
 $title = 'Liste des salles';
 
 ob_start();
+
 ?>
 
 <style>
+
     .page-header {
         display: flex;
         justify-content: space-between;
@@ -32,6 +34,15 @@ ob_start();
         background-color: #f3f4f6;
         border-radius: 6px;
         color: #4b5563;
+    }
+
+    .error-message {
+        margin: 15px 0;
+        padding: 12px 16px;
+        background-color: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 6px;
     }
 
     table.salles-table {
@@ -76,81 +87,157 @@ ob_start();
     .link-action {
         color: #2563eb;
         text-decoration: none;
+        margin-right: 10px;
     }
 
     .link-action:hover {
         text-decoration: underline;
     }
+
+    .btn-delete {
+        border: none;
+        background: none;
+        padding: 0;
+        color: #dc2626;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .btn-delete:hover {
+        text-decoration: underline;
+    }
+
 </style>
 
 <div class="page-header">
-    <h1>Liste des salles</h1>
+
+
+<h1>Liste des salles</h1>
+
 </div>
 
 <p>
-    <a href="/salles/create" class="btn">Ajouter une salle</a>
+
+<a href="/salles/create" class="btn">
+    Ajouter une salle
+</a>
+
 </p>
+
+<?php if (!empty($messageErreur)): ?>
+
+<div class="error-message">
+    <?= htmlspecialchars($messageErreur) ?>
+</div>
+
+
+<?php endif; ?>
 
 <?php if (empty($salles)): ?>
 
-    <p class="empty-message">Aucune salle disponible.</p>
+
+<p class="empty-message">
+    Aucune salle disponible.
+</p>
+
 
 <?php else: ?>
 
-    <table class="salles-table" border="1">
-        <thead>
-            <tr>
-                <th>Nom</th>
-                <th>Bâtiment</th>
-                <th>Capacité</th>
-                <th>Type</th>
-                <th>État</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+<table class="salles-table">
 
-        <tbody>
+    <thead>
 
-        <?php foreach ($salles as $salle): ?>
+        <tr>
+            <th>Nom</th>
+            <th>Bâtiment</th>
+            <th>Capacité</th>
+            <th>Type</th>
+            <th>État</th>
+            <th>Action</th>
+        </tr>
 
-            <tr>
-                <td>
-                    <?= htmlspecialchars($salle->nom) ?>
-                </td>
+    </thead>
 
-                <td>
-                    <?= htmlspecialchars($salle->batiment) ?>
-                </td>
+    <tbody>
 
-                <td>
-                    <?= htmlspecialchars((string) $salle->capacite) ?>
-                </td>
+    <?php foreach ($salles as $salle): ?>
 
-                <td>
-                    <?= htmlspecialchars($salle->type) ?>
-                </td>
+        <tr>
 
-                <td>
-                    <span class="badge <?= $salle->active ? 'badge-active' : 'badge-inactive' ?>">
-                        <?= $salle->active ? 'Active' : 'Inactive' ?>
-                    </span>
-                </td>
+            <td>
+                <?= htmlspecialchars($salle->nom) ?>
+            </td>
 
-                <td>
-                    <a class="link-action" href="/salles/<?= (int) $salle->id ?>">
-                        Voir
-                    </a>
-                </td>
-            </tr>
+            <td>
+                <?= htmlspecialchars($salle->batiment) ?>
+            </td>
 
-        <?php endforeach; ?>
+            <td>
+                <?= htmlspecialchars((string) $salle->capacite) ?>
+            </td>
 
-        </tbody>
-    </table>
+            <td>
+                <?= htmlspecialchars($salle->type) ?>
+            </td>
+
+            <td>
+
+                <span class="badge <?= $salle->active ? 'badge-active' : 'badge-inactive' ?>">
+
+                    <?= $salle->active ? 'Active' : 'Inactive' ?>
+
+                </span>
+
+            </td>
+
+            <td>
+
+                <a
+                    class="link-action"
+                    href="/salles/<?= (int) $salle->id ?>"
+                >
+                    Voir
+                </a>
+
+                <a
+                    class="link-action"
+                    href="/salles/<?= (int) $salle->id ?>/edit"
+                >
+                    Modifier
+                </a>
+
+                <form
+                    method="POST"
+                    action="/salles/<?= (int) $salle->id ?>/delete"
+                    style="display: inline;"
+                    onsubmit="return confirm('Voulez-vous vraiment supprimer cette salle ?');"
+                >
+
+                    <button
+                        type="submit"
+                        class="btn-delete"
+                    >
+                        Supprimer
+                    </button>
+
+                </form>
+
+            </td>
+
+        </tr>
+
+    <?php endforeach; ?>
+
+    </tbody>
+
+</table>
+
 
 <?php endif; ?>
 
 <?php
+
 $content = ob_get_clean();
 
 require dirname(__DIR__) . '/layout/base.php';
+?>

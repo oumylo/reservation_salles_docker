@@ -55,6 +55,12 @@ return function (RouteCollector $router): void {
     );
 
     $router->addRoute(
+    'POST',
+    '/salles/{id:\d+}/delete',
+    [SalleController::class, 'delete']
+    );
+
+    $router->addRoute(
         'GET',
         '/reservations/create',
         [ReservationController::class, 'create']
