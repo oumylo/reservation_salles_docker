@@ -36,6 +36,11 @@ final class FakeSalleRepository implements SalleRepositoryInterface
 
         return $salle;
     }
+
+        public function supprimer(int $id): bool
+    {
+        return false;
+    }
 }
 
 
@@ -61,6 +66,10 @@ final class FakeReservationRepository implements ReservationRepositoryInterface
         return $this->reservations[$id] ?? null;
     }
 
+        public function existePourSalle(int $salleId): bool
+    {
+        return false;
+    }
    
     public function rechercherConflit(
         int $salleId,

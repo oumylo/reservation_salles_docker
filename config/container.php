@@ -13,6 +13,11 @@ use App\Service\SupprimerSalleService;
 use App\Service\SupprimerSalleServiceInterface;
 use App\Validation\ReservationValidator;
 use App\Validation\SalleValidator;
+use App\Repository\ResponsableRepository;
+use App\Repository\ResponsableRepositoryInterface;
+use App\Service\AuthentificationService;
+use App\Service\AuthentificationServiceInterface;
+use App\Service\AutorisationService;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
 use Illuminate\Database\Capsule\Manager as Capsule;
@@ -38,6 +43,16 @@ return [
     AnnulerReservationServiceInterface::class => autowire(AnnulerReservationService::class),
 
     SupprimerSalleServiceInterface::class => autowire(SupprimerSalleService::class),
+
+    AutorisationService::class => autowire(),
+
+    ResponsableRepositoryInterface::class => autowire(
+    ResponsableRepository::class
+    ),
+
+    AuthentificationServiceInterface::class => autowire(
+        AuthentificationService::class
+    ),
 
     Dispatcher::class => function (): Dispatcher {
 

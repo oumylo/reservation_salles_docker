@@ -6,12 +6,25 @@ use App\Model\Reservation;
 
 class ReservationRepository implements ReservationRepositoryInterface
 {
-    public function lister(): array
+    public function lister()
     {
+        // On récupère le numéro de page dans l'URL.
+        // Exemple : /reservations?page=2
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+
+        // Une page doit commencer à 1.
+        if ($page < 1) {
+            $page = 1;
+        }
+
         return Reservation::query()
             ->orderBy('date_debut')
-            ->get()
-            ->all();
+            ->paginate(
+                4,
+                ['*'],
+                'page',
+                $page
+            );
     }
 
     public function trouver(int $id): ?Reservation

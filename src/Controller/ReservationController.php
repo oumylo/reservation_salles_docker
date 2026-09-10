@@ -10,6 +10,7 @@ use App\Repository\SalleRepositoryInterface;
 use App\Service\AnnulerReservationService;
 use App\Service\CreerReservationService;
 use App\Validation\ReservationValidator;
+use App\Service\AutorisationService;
 
 class ReservationController
 {
@@ -18,20 +19,29 @@ class ReservationController
         private SalleRepositoryInterface $salleRepository,
         private ReservationValidator $validator,
         private CreerReservationService $creerReservationService,
-        private AnnulerReservationService $annulerReservationService
+        private AnnulerReservationService $annulerReservationService,
+        private AutorisationService $autorisationService
     ) {
     }
 
+   
     public function index(): void
     {
+        $this->autorisationService->exigerConnexion();
+
         $reservations = $this->reservationRepository->lister();
+
+        $isAdmin = $this->autorisationService->estAdmin();
 
         require dirname(__DIR__, 2) . '/templates/reservation/index.php';
     }
 
 
+
     public function show(int $id): void
     {
+        $this->autorisationService->exigerConnexion();
+
         $reservation = $this->reservationRepository->trouver($id);
 
         if ($reservation === null) {
@@ -46,8 +56,10 @@ class ReservationController
     }
 
   
-    public function create(): void
+        public function create(): void
     {
+        $this->autorisationService->exigerAdmin();
+
         $errors = [];
         $data = [];
 
@@ -57,6 +69,7 @@ class ReservationController
  
     public function store(): void
     {
+        $this->autorisationService->exigerAdmin();
         
         $data = $_POST;
 
@@ -103,6 +116,8 @@ class ReservationController
 
     public function cancel(int $id): void
     {
+        $this->autorisationService->exigerConnexion();
+
         try {
          
             $this->annulerReservationService->executer($id);

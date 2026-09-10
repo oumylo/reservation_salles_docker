@@ -4,6 +4,7 @@ namespace App;
 
 use App\Controller\ReservationController;
 use App\Controller\SalleController;
+use App\Controller\AuthController;
 use FastRoute\Dispatcher;
 
 final class Application
@@ -11,7 +12,8 @@ final class Application
     public function __construct(
         private Dispatcher $dispatcher,
         private SalleController $salleController,
-        private ReservationController $reservationController
+        private ReservationController $reservationController,
+        private AuthController $authController
     ) {
     }
 
@@ -67,6 +69,8 @@ final class Application
 
                     ReservationController::class =>
                         $this->reservationController,
+
+                    AuthController::class => $this->authController,
 
                     default => throw new \RuntimeException(
                         'Contrôleur non pris en charge : ' . $handler[0]

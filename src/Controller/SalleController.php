@@ -3,12 +3,13 @@
 namespace App\Controller;
 
 use App\DTO\CreerSalleDTO;
-use App\Repository\SalleRepositoryInterface;
-use App\Validation\SalleValidator;
 use App\Exception\SalleAvecReservationsException;
 use App\Exception\SalleNonTrouveeException;
+use App\Repository\SalleRepositoryInterface;
+use App\Service\AutorisationService;
 use App\Service\CreerSalleService;
 use App\Service\SupprimerSalleService;
+use App\Validation\SalleValidator;
 
 class SalleController
 {
@@ -16,19 +17,29 @@ class SalleController
         private SalleRepositoryInterface $salleRepository,
         private SalleValidator $validator,
         private CreerSalleService $creerSalleService,
-        private SupprimerSalleService $supprimerSalleService
+        private SupprimerSalleService $supprimerSalleService,
+        private AutorisationService $autorisationService
     ) {
     }
 
     public function index(): void
     {
+      
+        $this->autorisationService->exigerConnexion();
+
         $salles = $this->salleRepository->lister();
+
+        $isAdmin = $this->autorisationService->estAdmin();
 
         require dirname(__DIR__, 2) . '/templates/salle/index.php';
     }
+    
 
     public function show(int $id): void
     {
+     
+        $this->autorisationService->exigerConnexion();
+
         $salle = $this->salleRepository->trouver($id);
 
         if ($salle === null) {
@@ -44,6 +55,9 @@ class SalleController
 
     public function create(): void
     {
+       
+        $this->autorisationService->exigerAdmin();
+
         $errors = [];
         $data = [];
         $salle = null;
@@ -53,7 +67,9 @@ class SalleController
 
     public function store(): void
     {
-       
+        
+        $this->autorisationService->exigerAdmin();
+
         $data = $_POST;
 
         $data['active'] = isset($data['active']);
@@ -61,7 +77,6 @@ class SalleController
         $result = $this->validator->validate($data);
 
         if (!$result->isValid()) {
-
             $errors = $result->errors();
             $data = $result->data();
 
@@ -91,6 +106,9 @@ class SalleController
 
     public function edit(int $id): void
     {
+       
+        $this->autorisationService->exigerAdmin();
+
         $salle = $this->salleRepository->trouver($id);
 
         if ($salle === null) {
@@ -118,6 +136,8 @@ class SalleController
 
     public function update(int $id): void
     {
+        $this->autorisationService->exigerAdmin();
+
         $salle = $this->salleRepository->trouver($id);
 
         if ($salle === null) {
@@ -135,7 +155,6 @@ class SalleController
         $result = $this->validator->validate($data);
 
         if (!$result->isValid()) {
-
             $errors = $result->errors();
             $data = $result->data();
 
@@ -171,9 +190,11 @@ class SalleController
         exit;
     }
 
-
     public function delete(int $id): void
     {
+       
+        $this->autorisationService->exigerAdmin();
+
         try {
             $this->supprimerSalleService->executer($id);
 
@@ -191,11 +212,11 @@ class SalleController
 
             $salles = $this->salleRepository->lister();
 
+            $isAdmin = $this->autorisationService->estAdmin();
+
             require dirname(__DIR__, 2) . '/templates/salle/index.php';
 
             return;
         }
     }
-
-
 }

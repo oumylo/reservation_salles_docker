@@ -8,9 +8,15 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $builder = new ContainerBuilder();
 
-$builder->addDefinitions(dirname(__DIR__) . '/config/container.php');
+$builder->addDefinitions(
+    dirname(__DIR__) . '/config/container.php'
+);
 
 $container = $builder->build();
 

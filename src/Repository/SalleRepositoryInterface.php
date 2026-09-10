@@ -6,7 +6,7 @@ use App\Model\Salle;
 
 interface SalleRepositoryInterface
 {
-    public function lister(): array;
+    public function lister();
 
     public function trouver(int $id): ?Salle;
 

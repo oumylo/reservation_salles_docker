@@ -7,237 +7,274 @@ ob_start();
 ?>
 
 <style>
+    h1 {
+        margin-bottom: 20px;
+    }
 
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+    .actions {
         margin-bottom: 20px;
     }
 
     .btn {
         display: inline-block;
-        padding: 8px 16px;
+        padding: 10px 16px;
         background-color: #2563eb;
-        color: #fff;
+        color: white;
         text-decoration: none;
-        border-radius: 4px;
-        font-size: 14px;
+        border-radius: 6px;
+        margin-right: 8px;
     }
 
     .btn:hover {
         background-color: #1d4ed8;
     }
 
-    .empty-message {
-        padding: 16px;
-        background-color: #f3f4f6;
-        border-radius: 6px;
-        color: #4b5563;
-    }
-
-    .error-message {
-        margin: 15px 0;
-        padding: 12px 16px;
-        background-color: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fecaca;
-        border-radius: 6px;
-    }
-
-    table.salles-table {
+    table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 10px;
+        margin-top: 20px;
     }
 
-    table.salles-table thead {
-        background-color: #f9fafb;
-    }
-
-    table.salles-table th,
-    table.salles-table td {
-        padding: 10px 12px;
-        border: 1px solid #e5e7eb;
+    th,
+    td {
+        padding: 12px;
+        border: 1px solid #ddd;
         text-align: left;
     }
 
-    table.salles-table tbody tr:hover {
-        background-color: #f9fafb;
+    th {
+        background-color: #f3f4f6;
     }
 
-    .badge {
+    .pagination {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 25px;
+    }
+
+    .pagination a,
+    .pagination span {
         display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .badge-active {
-        background-color: #dcfce7;
-        color: #166534;
-    }
-
-    .badge-inactive {
-        background-color: #fee2e2;
-        color: #991b1b;
-    }
-
-    .link-action {
-        color: #2563eb;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
         text-decoration: none;
-        margin-right: 10px;
     }
 
-    .link-action:hover {
-        text-decoration: underline;
+    .pagination a {
+        color: #2563eb;
+        background-color: white;
     }
 
-    .btn-delete {
+    .pagination a:hover {
+        background-color: #f3f4f6;
+    }
+
+    .pagination .current {
+        background-color: #2563eb;
+        color: white;
+        border-color: #2563eb;
+    }
+
+    .pagination .disabled {
+        color: #999;
+        background-color: #f3f3f3;
+    }
+
+    .btn-danger {
+        background-color: #dc2626;
+        color: white;
         border: none;
-        background: none;
-        padding: 0;
-        color: #dc2626;
+        padding: 8px 12px;
+        border-radius: 5px;
         cursor: pointer;
-        font-size: 14px;
     }
 
-    .btn-delete:hover {
-        text-decoration: underline;
+    .btn-danger:hover {
+        background-color: #b91c1c;
     }
-
 </style>
-
-<div class="page-header">
-
 
 <h1>Liste des salles</h1>
 
-</div>
 
-<p>
+<?php if ($isAdmin): ?>
 
-<a href="/salles/create" class="btn">
-    Ajouter une salle
-</a>
+    <div class="actions">
 
-</p>
+        <!--
+            Ce bouton permet à l'administrateur
+            d'accéder au formulaire de création d'une salle.
+        -->
+        <a href="/salles/create" class="btn">
+            Enregistrer une salle
+        </a>
 
-<?php if (!empty($messageErreur)): ?>
-
-<div class="error-message">
-    <?= htmlspecialchars($messageErreur) ?>
-</div>
-
+    </div>
 
 <?php endif; ?>
 
-<?php if (empty($salles)): ?>
 
+<?php if ($salles->isEmpty()): ?>
 
-<p class="empty-message">
-    Aucune salle disponible.
-</p>
-
+    <p>Aucune salle disponible.</p>
 
 <?php else: ?>
 
-<table class="salles-table">
+    <table>
 
-    <thead>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Bâtiment</th>
+                <th>Capacité</th>
+                <th>Type</th>
+                <th>Active</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
 
-        <tr>
-            <th>Nom</th>
-            <th>Bâtiment</th>
-            <th>Capacité</th>
-            <th>Type</th>
-            <th>État</th>
-            <th>Action</th>
-        </tr>
+        <tbody>
 
-    </thead>
+        <?php foreach ($salles as $salle): ?>
 
-    <tbody>
+            <tr>
 
-    <?php foreach ($salles as $salle): ?>
+                <td>
+                    <?= htmlspecialchars($salle->id) ?>
+                </td>
 
-        <tr>
+                <td>
+                    <?= htmlspecialchars($salle->nom) ?>
+                </td>
 
-            <td>
-                <?= htmlspecialchars($salle->nom) ?>
-            </td>
+                <td>
+                    <?= htmlspecialchars($salle->batiment) ?>
+                </td>
 
-            <td>
-                <?= htmlspecialchars($salle->batiment) ?>
-            </td>
+                <td>
+                    <?= htmlspecialchars($salle->capacite) ?>
+                </td>
 
-            <td>
-                <?= htmlspecialchars((string) $salle->capacite) ?>
-            </td>
+                <td>
+                    <?= htmlspecialchars($salle->type) ?>
+                </td>
 
-            <td>
-                <?= htmlspecialchars($salle->type) ?>
-            </td>
+                <td>
+                    <?= $salle->active ? 'Oui' : 'Non' ?>
+                </td>
 
-            <td>
+                <td>
 
-                <span class="badge <?= $salle->active ? 'badge-active' : 'badge-inactive' ?>">
+                    <a href="/salles/<?= $salle->id ?>">
+                        Voir
+                    </a>
 
-                    <?= $salle->active ? 'Active' : 'Inactive' ?>
+                    <?php if ($isAdmin): ?>
 
+                        |
+
+                        <a href="/salles/<?= $salle->id ?>/edit">
+                            Modifier
+                        </a>
+
+                        |
+
+                        <form
+                            method="POST"
+                            action="/salles/<?= $salle->id ?>/delete"
+                            style="display: inline;"
+                        >
+                            <button
+                                type="submit"
+                                class="btn-danger"
+                            >
+                                Supprimer
+                            </button>
+                        </form>
+
+                    <?php endif; ?>
+
+                </td>
+
+            </tr>
+
+        <?php endforeach; ?>
+
+        </tbody>
+
+    </table>
+
+
+    <!-- Pagination -->
+
+    <?php if ($salles->lastPage() > 1): ?>
+
+        <div class="pagination">
+
+            <?php if ($salles->onFirstPage()): ?>
+
+                <span class="disabled">
+                    Précédent
                 </span>
 
-            </td>
+            <?php else: ?>
 
-            <td>
-
-                <a
-                    class="link-action"
-                    href="/salles/<?= (int) $salle->id ?>"
-                >
-                    Voir
+                <a href="<?= htmlspecialchars($salles->previousPageUrl()) ?>">
+                    Précédent
                 </a>
 
-                <a
-                    class="link-action"
-                    href="/salles/<?= (int) $salle->id ?>/edit"
-                >
-                    Modifier
+            <?php endif; ?>
+
+
+            <?php for (
+                $page = 1;
+                $page <= $salles->lastPage();
+                $page++
+            ): ?>
+
+                <?php if ($page === $salles->currentPage()): ?>
+
+                    <span class="current">
+                        <?= $page ?>
+                    </span>
+
+                <?php else: ?>
+
+                    <a href="<?= htmlspecialchars($salles->url($page)) ?>">
+                        <?= $page ?>
+                    </a>
+
+                <?php endif; ?>
+
+            <?php endfor; ?>
+
+
+            <?php if ($salles->hasMorePages()): ?>
+
+                <a href="<?= htmlspecialchars($salles->nextPageUrl()) ?>">
+                    Suivant
                 </a>
 
-                <form
-                    method="POST"
-                    action="/salles/<?= (int) $salle->id ?>/delete"
-                    style="display: inline;"
-                    onsubmit="return confirm('Voulez-vous vraiment supprimer cette salle ?');"
-                >
+            <?php else: ?>
 
-                    <button
-                        type="submit"
-                        class="btn-delete"
-                    >
-                        Supprimer
-                    </button>
+                <span class="disabled">
+                    Suivant
+                </span>
 
-                </form>
+            <?php endif; ?>
 
-            </td>
+        </div>
 
-        </tr>
-
-    <?php endforeach; ?>
-
-    </tbody>
-
-</table>
-
+    <?php endif; ?>
 
 <?php endif; ?>
+
 
 <?php
 
 $content = ob_get_clean();
 
 require dirname(__DIR__) . '/layout/base.php';
-?>

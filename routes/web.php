@@ -3,6 +3,7 @@
 use App\Controller\ReservationController;
 use App\Controller\SalleController;
 use FastRoute\RouteCollector;
+use App\Controller\AuthController;
 
 return function (RouteCollector $router): void {
 
@@ -82,5 +83,22 @@ return function (RouteCollector $router): void {
         'POST',
         '/reservations/{id:\d+}/cancel',
         [ReservationController::class, 'cancel']
+    );
+    $router->addRoute(
+    'GET',
+    '/login',
+    [AuthController::class, 'login']
+    );
+
+    $router->addRoute(
+        'POST',
+        '/login',
+        [AuthController::class, 'authenticate']
+    );
+
+    $router->addRoute(
+        'POST',
+        '/logout',
+        [AuthController::class, 'logout']
     );
 };
