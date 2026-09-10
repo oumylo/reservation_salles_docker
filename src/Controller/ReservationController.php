@@ -8,9 +8,9 @@ use App\Exception\SalleIndisponibleException;
 use App\Repository\ReservationRepositoryInterface;
 use App\Repository\SalleRepositoryInterface;
 use App\Service\AnnulerReservationService;
+use App\Service\AutorisationService;
 use App\Service\CreerReservationService;
 use App\Validation\ReservationValidator;
-use App\Service\AutorisationService;
 
 class ReservationController
 {
@@ -24,7 +24,6 @@ class ReservationController
     ) {
     }
 
-   
     public function index(): void
     {
         $this->autorisationService->exigerConnexion();
@@ -36,8 +35,6 @@ class ReservationController
         require dirname(__DIR__, 2) . '/templates/reservation/index.php';
     }
 
-
-
     public function show(int $id): void
     {
         $this->autorisationService->exigerConnexion();
@@ -46,17 +43,14 @@ class ReservationController
 
         if ($reservation === null) {
             http_response_code(404);
-
             require dirname(__DIR__, 2) . '/templates/error/404.php';
-
             return;
         }
 
         require dirname(__DIR__, 2) . '/templates/reservation/show.php';
     }
 
-  
-        public function create(): void
+    public function create(): void
     {
         $this->autorisationService->exigerAdmin();
 
@@ -66,11 +60,10 @@ class ReservationController
         $this->afficherFormulaire($data, $errors);
     }
 
- 
     public function store(): void
     {
         $this->autorisationService->exigerAdmin();
-        
+
         $data = $_POST;
 
         $result = $this->validator->validate($data);
@@ -96,14 +89,12 @@ class ReservationController
         );
 
         try {
-          
             $this->creerReservationService->executer($dto);
 
             header('Location: /reservations');
+
             exit;
-
         } catch (SalleIndisponibleException $exception) {
-
             $errors = [
                 'date_debut' => $exception->getMessage()
             ];
@@ -116,17 +107,15 @@ class ReservationController
 
     public function cancel(int $id): void
     {
-        $this->autorisationService->exigerConnexion();
+        $this->autorisationService->exigerAdmin();
 
         try {
-         
             $this->annulerReservationService->executer($id);
 
             header('Location: /reservations');
+
             exit;
-
         } catch (ReservationIntrouvableException $exception) {
-
             http_response_code(404);
 
             require dirname(__DIR__, 2) . '/templates/error/404.php';
@@ -135,8 +124,8 @@ class ReservationController
         }
     }
 
-    private function afficherFormulaire( array $data, array $errors ): void {
-      
+    private function afficherFormulaire(array $data, array $errors): void
+    {
         $salles = $this->salleRepository->lister();
 
         $action = '/reservations';

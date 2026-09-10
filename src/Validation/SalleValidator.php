@@ -1,87 +1,59 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Validation;
 
+use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Validator as v;
 
-class SalleValidator implements ValidatorInterface
+final class SalleValidator implements ValidatorInterface
 {
+    private const TYPES_AUTORISES = [
+        'cours',
+        'informatique',
+        'laboratoire',
+        'amphitheatre',
+        'reunion',
+    ];
+
     public function validate(array $data): ValidationResult
     {
         $errors = [];
-        $acceptedData = [];
 
-        $nomValide = v::stringType()
-            ->notEmpty()
-            ->length(2, 100)
-            ->validate($data['nom'] ?? null);
+        $rules = [
+            'nom' => v::stringType()
+                ->notEmpty()
+                ->length(2, 100),
 
-        if (!$nomValide) {
-            $errors['nom'] =
-                'Le nom est obligatoire et doit contenir entre 2 et 100 caractères.';
-        } else {
-            $acceptedData['nom'] = $data['nom'];
-        }
+            'batiment' => v::stringType()
+                ->notEmpty()
+                ->length(2, 100),
 
-        $batimentValide = v::stringType()
-            ->notEmpty()
-            ->length(2, 100)
-            ->validate($data['batiment'] ?? null);
+            'capacite' => v::intVal()
+                ->between(1, 1000),
 
-        if (!$batimentValide) {
-            $errors['batiment'] =
-                'Le bâtiment est obligatoire et doit contenir entre 2 et 100 caractères.';
-        } else {
-            $acceptedData['batiment'] = $data['batiment'];
-        }
+            'type' => v::in(self::TYPES_AUTORISES),
 
-        $capacite = $data['capacite'] ?? null;
-
-        $capaciteValide = v::stringType()
-            ->digit()
-            ->validate($capacite);
-
-        if (
-            !$capaciteValide
-            || (int) $capacite < 1
-            || (int) $capacite > 1000
-        ) {
-            $errors['capacite'] =
-                'La capacité doit être un entier compris entre 1 et 1000.';
-        } else {
-            $acceptedData['capacite'] = (int) $capacite;
-        }
-
-        $typesAutorises = [
-            'cours',
-            'informatique',
-            'laboratoire',
-            'amphitheatre',
-            'reunion',
+            'active' => v::boolType(),
         ];
 
-        $typeValide = v::in($typesAutorises)
-            ->validate($data['type'] ?? null);
+        foreach ($rules as $champ => $regle) {
 
-        if (!$typeValide) {
-            $errors['type'] = 'Le type de salle est invalide.';
-        } else {
-            $acceptedData['type'] = $data['type'];
-        }
+            try {
 
-        $activeValide = v::boolType()
-            ->validate($data['active'] ?? null);
+                $regle->assert($data[$champ] ?? null);
 
-        if (!$activeValide) {
-            $errors['active'] =
-                'Le champ active doit être un booléen.';
-        } else {
-            $acceptedData['active'] = $data['active'];
+            } catch (NestedValidationException $e) {
+
+                $errors[$champ] = $e->getMessages();
+            }
         }
 
         return new ValidationResult(
+            empty($errors),
             $errors,
-            $acceptedData
+            $data
         );
     }
 }

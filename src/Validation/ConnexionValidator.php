@@ -1,41 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Validation;
 
+use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Validator as v;
 
-class ConnexionValidator implements ValidatorInterface
+final class ConnexionValidator implements ValidatorInterface
 {
     public function validate(array $data): ValidationResult
     {
         $errors = [];
-        $acceptedData = [];
 
-        $emailValide = v::email()
-            ->validate($data['email'] ?? null);
+        $rules = [
+            'email' => v::email(),
 
-        if (!$emailValide) {
-            $errors['email'][] =
-                'L’adresse email est invalide.';
-        } else {
-            $acceptedData['email'] = $data['email'];
-        }
+            'password' => v::stringType()
+                ->notEmpty()
+                ->length(1, 255),
+        ];
 
-        $passwordValide = v::stringType()
-            ->notEmpty()
-            ->length(1, 255)
-            ->validate($data['password'] ?? null);
+        foreach ($rules as $champ => $regle) {
 
-        if (!$passwordValide) {
-            $errors['password'][] =
-                'Le mot de passe est obligatoire.';
-        } else {
-            $acceptedData['password'] = $data['password'];
+            try {
+
+                $regle->assert($data[$champ] ?? null);
+
+            } catch (NestedValidationException $e) {
+
+                $errors[$champ] = $e->getMessages();
+            }
         }
 
         return new ValidationResult(
+            empty($errors),
             $errors,
-            $acceptedData
+            $data
         );
     }
 }

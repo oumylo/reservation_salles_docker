@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Validation;
 
-class ValidationResult
+final class ValidationResult
 {
     public function __construct(
-        private array $errors = [],
-        private array $data = []
+        private bool $valid,
+        private array $errors,
+        private array $data
     ) {
     }
 
     public function isValid(): bool
     {
-        return empty($this->errors);
+        return $this->valid;
     }
-
 
     public function errors(): array
     {

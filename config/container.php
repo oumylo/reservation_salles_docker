@@ -5,19 +5,13 @@ use App\Repository\ReservationRepository;
 use App\Repository\ReservationRepositoryInterface;
 use App\Repository\SalleRepository;
 use App\Repository\SalleRepositoryInterface;
-use App\Service\AnnulerReservationService;
-use App\Service\AnnulerReservationServiceInterface;
-use App\Service\CreerReservationService;
-use App\Service\CreerReservationServiceInterface;
-use App\Service\SupprimerSalleService;
-use App\Service\SupprimerSalleServiceInterface;
-use App\Validation\ReservationValidator;
-use App\Validation\SalleValidator;
 use App\Repository\ResponsableRepository;
 use App\Repository\ResponsableRepositoryInterface;
 use App\Service\AuthentificationService;
 use App\Service\AuthentificationServiceInterface;
 use App\Service\AutorisationService;
+use App\Validation\ReservationValidator;
+use App\Validation\SalleValidator;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
 use Illuminate\Database\Capsule\Manager as Capsule;
@@ -30,24 +24,22 @@ return [
         return require dirname(__DIR__) . '/config/database.php';
     },
 
-    SalleRepositoryInterface::class => autowire(SalleRepository::class),
+    SalleRepositoryInterface::class => autowire(
+        SalleRepository::class
+    ),
 
-    ReservationRepositoryInterface::class => autowire(ReservationRepository::class),
+    ReservationRepositoryInterface::class => autowire(
+        ReservationRepository::class
+    ),
 
     SalleValidator::class => autowire(),
 
     ReservationValidator::class => autowire(),
 
-    CreerReservationServiceInterface::class => autowire(CreerReservationService::class),
-
-    AnnulerReservationServiceInterface::class => autowire(AnnulerReservationService::class),
-
-    SupprimerSalleServiceInterface::class => autowire(SupprimerSalleService::class),
-
     AutorisationService::class => autowire(),
 
     ResponsableRepositoryInterface::class => autowire(
-    ResponsableRepository::class
+        ResponsableRepository::class
     ),
 
     AuthentificationServiceInterface::class => autowire(

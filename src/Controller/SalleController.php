@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\DTO\CreerSalleDTO;
@@ -24,7 +26,6 @@ class SalleController
 
     public function index(): void
     {
-      
         $this->autorisationService->exigerConnexion();
 
         $salles = $this->salleRepository->lister();
@@ -33,11 +34,9 @@ class SalleController
 
         require dirname(__DIR__, 2) . '/templates/salle/index.php';
     }
-    
 
     public function show(int $id): void
     {
-     
         $this->autorisationService->exigerConnexion();
 
         $salle = $this->salleRepository->trouver($id);
@@ -55,7 +54,6 @@ class SalleController
 
     public function create(): void
     {
-       
         $this->autorisationService->exigerAdmin();
 
         $errors = [];
@@ -67,12 +65,12 @@ class SalleController
 
     public function store(): void
     {
-        
         $this->autorisationService->exigerAdmin();
 
         $data = $_POST;
 
         $data['active'] = isset($data['active']);
+        $data['capacite'] = (int) ($data['capacite'] ?? 0);
 
         $result = $this->validator->validate($data);
 
@@ -106,7 +104,6 @@ class SalleController
 
     public function edit(int $id): void
     {
-       
         $this->autorisationService->exigerAdmin();
 
         $salle = $this->salleRepository->trouver($id);
@@ -151,6 +148,7 @@ class SalleController
         $data = $_POST;
 
         $data['active'] = isset($data['active']);
+        $data['capacite'] = (int) ($data['capacite'] ?? 0);
 
         $result = $this->validator->validate($data);
 
@@ -192,7 +190,6 @@ class SalleController
 
     public function delete(int $id): void
     {
-       
         $this->autorisationService->exigerAdmin();
 
         try {

@@ -11,9 +11,7 @@ class AuthController
 {
     public function __construct(
         private ConnexionValidator $validator,
-        private AuthentificationServiceInterface $authentificationService,
-        
-        
+        private AuthentificationServiceInterface $authentificationService
     ) {
     }
 
