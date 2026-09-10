@@ -7,18 +7,20 @@ namespace App\Controller;
 use App\DTO\CreerSalleDTO;
 use App\Exception\SalleAvecReservationsException;
 use App\Exception\SalleNonTrouveeException;
-use App\Repository\SalleRepositoryInterface;
 use App\Service\AutorisationService;
 use App\Service\CreerSalleService;
+use App\Service\ModifierSalleService;
+use App\Service\SalleConsultationService;
+use App\Service\SalleValidationService;
 use App\Service\SupprimerSalleService;
-use App\Validation\SalleValidator;
 
 class SalleController
 {
     public function __construct(
-        private SalleRepositoryInterface $salleRepository,
-        private SalleValidator $validator,
+        private SalleConsultationService $salleConsultationService,
+        private SalleValidationService $validationService,
         private CreerSalleService $creerSalleService,
+        private ModifierSalleService $modifierSalleService,
         private SupprimerSalleService $supprimerSalleService,
         private AutorisationService $autorisationService
     ) {
@@ -28,7 +30,7 @@ class SalleController
     {
         $this->autorisationService->exigerConnexion();
 
-        $salles = $this->salleRepository->lister();
+        $salles = $this->salleConsultationService->lister();
 
         $isAdmin = $this->autorisationService->estAdmin();
 
@@ -39,7 +41,7 @@ class SalleController
     {
         $this->autorisationService->exigerConnexion();
 
-        $salle = $this->salleRepository->trouver($id);
+        $salle = $this->salleConsultationService->trouver($id);
 
         if ($salle === null) {
             http_response_code(404);
@@ -72,7 +74,7 @@ class SalleController
         $data['active'] = isset($data['active']);
         $data['capacite'] = (int) ($data['capacite'] ?? 0);
 
-        $result = $this->validator->validate($data);
+        $result = $this->validationService->valider($data);
 
         if (!$result->isValid()) {
             $errors = $result->errors();
@@ -106,7 +108,7 @@ class SalleController
     {
         $this->autorisationService->exigerAdmin();
 
-        $salle = $this->salleRepository->trouver($id);
+        $salle = $this->salleConsultationService->trouver($id);
 
         if ($salle === null) {
             http_response_code(404);
@@ -135,22 +137,12 @@ class SalleController
     {
         $this->autorisationService->exigerAdmin();
 
-        $salle = $this->salleRepository->trouver($id);
-
-        if ($salle === null) {
-            http_response_code(404);
-
-            require dirname(__DIR__, 2) . '/templates/error/404.php';
-
-            return;
-        }
-
         $data = $_POST;
 
         $data['active'] = isset($data['active']);
         $data['capacite'] = (int) ($data['capacite'] ?? 0);
 
-        $result = $this->validator->validate($data);
+        $result = $this->validationService->valider($data);
 
         if (!$result->isValid()) {
             $errors = $result->errors();
@@ -173,19 +165,19 @@ class SalleController
             $validatedData['active']
         );
 
-        $salle->fill([
-            'nom' => $dto->nom,
-            'batiment' => $dto->batiment,
-            'capacite' => $dto->capacite,
-            'type' => $dto->type,
-            'active' => $dto->active,
-        ]);
+        try {
+            $this->modifierSalleService->executer($id, $dto);
 
-        $this->salleRepository->enregistrer($salle);
+            header('Location: /salles');
 
-        header('Location: /salles');
+            exit;
+        } catch (SalleNonTrouveeException $exception) {
+            http_response_code(404);
 
-        exit;
+            require dirname(__DIR__, 2) . '/templates/error/404.php';
+
+            return;
+        }
     }
 
     public function delete(int $id): void
@@ -207,7 +199,7 @@ class SalleController
         } catch (SalleAvecReservationsException $exception) {
             $messageErreur = $exception->getMessage();
 
-            $salles = $this->salleRepository->lister();
+            $salles = $this->salleConsultationService->lister();
 
             $isAdmin = $this->autorisationService->estAdmin();
 

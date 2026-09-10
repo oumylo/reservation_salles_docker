@@ -1,23 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\DTO\CreerReservationDTO;
 use App\Exception\ReservationIntrouvableException;
 use App\Exception\SalleIndisponibleException;
-use App\Repository\ReservationRepositoryInterface;
-use App\Repository\SalleRepositoryInterface;
 use App\Service\AnnulerReservationService;
 use App\Service\AutorisationService;
 use App\Service\CreerReservationService;
-use App\Validation\ReservationValidator;
+use App\Service\ReservationConsultationService;
+use App\Service\ReservationValidationService;
+
 
 class ReservationController
 {
     public function __construct(
-        private ReservationRepositoryInterface $reservationRepository,
-        private SalleRepositoryInterface $salleRepository,
-        private ReservationValidator $validator,
+        private ReservationConsultationService $reservationConsultationService,
+        private ReservationValidationService $validationService,
         private CreerReservationService $creerReservationService,
         private AnnulerReservationService $annulerReservationService,
         private AutorisationService $autorisationService
@@ -28,7 +29,7 @@ class ReservationController
     {
         $this->autorisationService->exigerConnexion();
 
-        $reservations = $this->reservationRepository->lister();
+        $reservations = $this->reservationConsultationService->lister();
 
         $isAdmin = $this->autorisationService->estAdmin();
 
@@ -39,11 +40,13 @@ class ReservationController
     {
         $this->autorisationService->exigerConnexion();
 
-        $reservation = $this->reservationRepository->trouver($id);
+        $reservation = $this->reservationConsultationService->trouver($id);
 
         if ($reservation === null) {
             http_response_code(404);
+
             require dirname(__DIR__, 2) . '/templates/error/404.php';
+
             return;
         }
 
@@ -66,7 +69,7 @@ class ReservationController
 
         $data = $_POST;
 
-        $result = $this->validator->validate($data);
+        $result = $this->validationService->valider($data);
 
         if (!$result->isValid()) {
             $errors = $result->errors();
@@ -126,7 +129,7 @@ class ReservationController
 
     private function afficherFormulaire(array $data, array $errors): void
     {
-        $salles = $this->salleRepository->lister();
+        $salles = $this->reservationConsultationService->listerSalles();
 
         $action = '/reservations';
 

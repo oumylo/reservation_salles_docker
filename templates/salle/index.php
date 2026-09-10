@@ -98,15 +98,19 @@ ob_start();
 
 <h1>Liste des salles</h1>
 
+<?php if (!empty($messageErreur)): ?>
+
+    <p class="form-error">
+        <?= htmlspecialchars($messageErreur) ?>
+    </p>
+
+<?php endif; ?>
 
 <?php if ($isAdmin): ?>
 
     <div class="actions">
 
-        <!--
-            Ce bouton permet à l'administrateur
-            d'accéder au formulaire de création d'une salle.
-        -->
+      
         <a href="/salles/create" class="btn">
             Enregistrer une salle
         </a>

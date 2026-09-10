@@ -9,8 +9,13 @@ use App\Repository\ResponsableRepository;
 use App\Repository\ResponsableRepositoryInterface;
 use App\Service\AuthentificationService;
 use App\Service\AuthentificationServiceInterface;
+use App\Service\ReservationConsultationService;
 use App\Service\AutorisationService;
+use App\Service\ModifierSalleService;
+use App\Validation\ConnexionValidator;
 use App\Validation\ReservationValidator;
+use App\Service\SalleConsultationService;
+use App\Service\SalleValidationService;
 use App\Validation\SalleValidator;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
@@ -19,8 +24,7 @@ use function DI\autowire;
 
 return [
 
-    Capsule::class => function (): Capsule
-    {
+    Capsule::class => function (): Capsule {
         return require dirname(__DIR__) . '/config/database.php';
     },
 
@@ -32,22 +36,31 @@ return [
         ReservationRepository::class
     ),
 
-    SalleValidator::class => autowire(),
-
-    ReservationValidator::class => autowire(),
-
-    AutorisationService::class => autowire(),
-
     ResponsableRepositoryInterface::class => autowire(
         ResponsableRepository::class
     ),
+
+    SalleValidator::class => autowire(),
+
+    ReservationConsultationService::class => autowire(),
+
+    ReservationValidator::class => autowire(),
+
+    ConnexionValidator::class => autowire(),
+
+    AutorisationService::class => autowire(),
+
+    SalleConsultationService::class => autowire(),
+
+    SalleValidationService::class => autowire(),
 
     AuthentificationServiceInterface::class => autowire(
         AuthentificationService::class
     ),
 
-    Dispatcher::class => function (): Dispatcher {
+    ModifierSalleService::class => autowire(),
 
+    Dispatcher::class => function (): Dispatcher {
         return \FastRoute\simpleDispatcher(
             function (RouteCollector $router): void {
 
