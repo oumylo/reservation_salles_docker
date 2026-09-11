@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App;
 
+use App\Controller\AuthController;
 use App\Controller\ReservationController;
 use App\Controller\SalleController;
-use App\Controller\AuthController;
+use App\Middleware\MiddlewareResolverInterface;
+use App\Middleware\MiddlewareRunner;
 use FastRoute\Dispatcher;
 
 final class Application
@@ -13,13 +17,14 @@ final class Application
         private Dispatcher $dispatcher,
         private SalleController $salleController,
         private ReservationController $reservationController,
-        private AuthController $authController
+        private AuthController $authController,
+        private MiddlewareRunner $middlewareRunner,
+        private MiddlewareResolverInterface $middlewareResolver
     ) {
     }
 
     public function run(): void
     {
-     
         $httpMethod = $_SERVER['REQUEST_METHOD'];
 
         $uri = parse_url(
@@ -56,7 +61,7 @@ final class Application
 
                 break;
 
-            case Dispatcher::FOUND:
+                        case Dispatcher::FOUND:
 
                 $handler = $routeInfo[1];
 
@@ -70,7 +75,8 @@ final class Application
                     ReservationController::class =>
                         $this->reservationController,
 
-                    AuthController::class => $this->authController,
+                    AuthController::class =>
+                        $this->authController,
 
                     default => throw new \RuntimeException(
                         'Contrôleur non pris en charge : ' . $handler[0]
@@ -79,9 +85,80 @@ final class Application
 
                 $action = $handler[1];
 
-                $controller->$action(...array_values($vars));
+                // Le 3e élément de la route (facultatif) contient les
+                // classes de middleware à appliquer, ex: [AdminMiddleware::class]
+                $middlewareClasses = $handler[2] ?? [];
+
+                $middlewares = $this->middlewareResolver->resolve(
+                    $middlewareClasses
+                );
+
+                // FastRoute retourne toujours les paramètres d'URL sous
+                // forme de chaînes ; on les caste en int car les routes
+                // ne capturent que des identifiants numériques ({id:\d+}).
+                $vars = array_map(
+                    static fn (string $value): int => (int) $value,
+                    $vars
+                );
+
+                $this->middlewareRunner->run(
+                    $middlewares,
+                    function () use (
+                        $controller,
+                        $action,
+                        $vars
+                    ): void {
+                        $controller->$action(
+                            ...array_values($vars)
+                        );
+                    }
+                );
+
+                break;
+
+                $handler = $routeInfo[1];
+
+                $vars = $routeInfo[2];
+
+                $controller = match ($handler[0]) {
+
+                    SalleController::class =>
+                        $this->salleController,
+
+                    ReservationController::class =>
+                        $this->reservationController,
+
+                    AuthController::class =>
+                        $this->authController,
+
+                    default => throw new \RuntimeException(
+                        'Contrôleur non pris en charge : ' . $handler[0]
+                    ),
+                };
+
+                $action = $handler[1];
+
+                $middlewareClasses = $handler[2] ?? [];
+
+                $middlewares = $this->middlewareResolver->resolve(
+                    $middlewareClasses
+                );
+
+                $this->middlewareRunner->run(
+                    $middlewares,
+                    function () use (
+                        $controller,
+                        $action,
+                        $vars
+                    ): void {
+                        $controller->$action(
+                            ...array_values($vars)
+                        );
+                    }
+                );
 
                 break;
         }
     }
 }
+

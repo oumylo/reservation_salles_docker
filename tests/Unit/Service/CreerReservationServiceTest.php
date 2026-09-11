@@ -8,8 +8,8 @@ use App\Model\Salle;
 use App\Repository\ReservationRepositoryInterface;
 use App\Repository\SalleRepositoryInterface;
 use App\Service\CreerReservationService;
+use App\Service\ReservationDisponibiliteService;
 use PHPUnit\Framework\TestCase;
-
 
 final class FakeSalleRepository implements SalleRepositoryInterface
 {
@@ -37,12 +37,24 @@ final class FakeSalleRepository implements SalleRepositoryInterface
         return $salle;
     }
 
-        public function supprimer(int $id): bool
+    public function supprimer(int $id): bool
     {
         return false;
     }
-}
 
+    /*
+     * Cette méthode est obligatoire car elle existe
+     * maintenant dans SalleRepositoryInterface.
+     *
+     * Ce faux repository n'est pas utilisé pour les
+     * statistiques dans ces tests, donc on retourne
+     * simplement un tableau vide.
+     */
+    public function sallesLesPlusUtilisees(): array
+    {
+        return [];
+    }
+}
 
 final class FakeReservationRepository implements ReservationRepositoryInterface
 {
@@ -55,7 +67,6 @@ final class FakeReservationRepository implements ReservationRepositoryInterface
         $this->conflit = $conflit;
     }
 
-
     public function lister(): array
     {
         return array_values($this->reservations);
@@ -66,11 +77,11 @@ final class FakeReservationRepository implements ReservationRepositoryInterface
         return $this->reservations[$id] ?? null;
     }
 
-        public function existePourSalle(int $salleId): bool
+    public function existePourSalle(int $salleId): bool
     {
         return false;
     }
-   
+
     public function rechercherConflit(
         int $salleId,
         \DateTimeImmutable $dateDebut,
@@ -92,8 +103,6 @@ final class FakeReservationRepository implements ReservationRepositoryInterface
     }
 }
 
-
-
 final class CreerReservationServiceTest extends TestCase
 {
     private FakeSalleRepository $salleRepository;
@@ -101,7 +110,6 @@ final class CreerReservationServiceTest extends TestCase
     private FakeReservationRepository $reservationRepository;
 
     private CreerReservationService $service;
-
 
     protected function setUp(): void
     {
@@ -111,8 +119,13 @@ final class CreerReservationServiceTest extends TestCase
 
         $this->reservationRepository = new FakeReservationRepository();
 
-        $this->service = new CreerReservationService(
+        $disponibiliteService = new ReservationDisponibiliteService(
             $this->salleRepository,
+            $this->reservationRepository
+        );
+
+        $this->service = new CreerReservationService(
+            $disponibiliteService,
             $this->reservationRepository
         );
     }
@@ -130,10 +143,9 @@ final class CreerReservationServiceTest extends TestCase
 
         $this->salleRepository->ajouter($salle);
 
-        $dateDebut = new \DateTimeImmutable( 'tomorrow 10:00:00' );
+        $dateDebut = new \DateTimeImmutable('tomorrow 10:00:00');
 
-        $dateFin = new \DateTimeImmutable( 'tomorrow 12:00:00' );
-
+        $dateFin = new \DateTimeImmutable('tomorrow 12:00:00');
 
         $dto = new CreerReservationDTO(
             salleId: 1,
@@ -146,282 +158,303 @@ final class CreerReservationServiceTest extends TestCase
 
         $reservation = $this->service->executer($dto);
 
-        $this->assertInstanceOf( Reservation::class, $reservation );
+        $this->assertInstanceOf(
+            Reservation::class,
+            $reservation
+        );
 
         $this->assertSame(
             1,
             $reservation->salle_id
         );
 
-        $this->assertSame('Awa Ndiaye', $reservation->responsable);
+        $this->assertSame(
+            'Awa Ndiaye',
+            $reservation->responsable
+        );
 
-        $this->assertSame('awa.ndiaye@universite.sn',$reservation->email  );
+        $this->assertSame(
+            'awa.ndiaye@universite.sn',
+            $reservation->email
+        );
 
-        $this->assertSame( 'Cours d\'architecture logicielle', $reservation->motif  );
+        $this->assertSame(
+            'Cours d\'architecture logicielle',
+            $reservation->motif
+        );
 
-        $this->assertSame( 'confirmée', $reservation->statut );
+        $this->assertSame(
+            'confirmée',
+            $reservation->statut
+        );
 
-        $this->assertEquals(  $dateDebut, $reservation->date_debut );
+        $this->assertEquals(
+            $dateDebut,
+            $reservation->date_debut
+        );
 
-        $this->assertEquals( $dateFin,  $reservation->date_fin );
+        $this->assertEquals(
+            $dateFin,
+            $reservation->date_fin
+        );
     }
 
-public function testSalleInexistante(): void
-{
-   
-    $dateDebut = new \DateTimeImmutable('tomorrow 10:00:00');
+    public function testSalleInexistante(): void
+    {
+        $dateDebut = new \DateTimeImmutable('tomorrow 10:00:00');
+
+        $dateFin = new \DateTimeImmutable('tomorrow 12:00:00');
+
+        $dto = new CreerReservationDTO(
+            salleId: 999,
+            responsable: 'Awa Ndiaye',
+            email: 'awa.ndiaye@universite.sn',
+            motif: 'Cours d\'architecture logicielle',
+            dateDebut: $dateDebut,
+            dateFin: $dateFin
+        );
+
+        $this->expectException(
+            \App\Exception\SalleIndisponibleException::class
+        );
+
+        $this->expectExceptionMessage(
+            'La salle demandée n\'existe pas.'
+        );
+
+        $this->service->executer($dto);
+    }
+
+    public function testSalleInactive(): void
+    {
+        $salle = new Salle();
+
+        $salle->id = 2;
+        $salle->nom = 'Salle C15';
+        $salle->batiment = 'C';
+        $salle->capacite = 40;
+        $salle->type = 'cours';
+        $salle->active = false;
+
+        $this->salleRepository->ajouter($salle);
+
+        $dateDebut = new \DateTimeImmutable('tomorrow 10:00:00');
+
+        $dateFin = new \DateTimeImmutable('tomorrow 12:00:00');
+
+        $dto = new CreerReservationDTO(
+            salleId: 2,
+            responsable: 'Awa Ndiaye',
+            email: 'awa.ndiaye@universite.sn',
+            motif: 'Cours d\'architecture logicielle',
+            dateDebut: $dateDebut,
+            dateFin: $dateFin
+        );
+
+        $this->expectException(
+            \App\Exception\SalleIndisponibleException::class
+        );
+
+        $this->expectExceptionMessage(
+            'La salle demandée est inactive.'
+        );
+
+        $this->service->executer($dto);
+    }
+
+    public function testDateFinAvantDateDebut(): void
+    {
+        $salle = new Salle();
+
+        $salle->id = 3;
+        $salle->nom = 'Salle D20';
+        $salle->batiment = 'D';
+        $salle->capacite = 30;
+        $salle->type = 'cours';
+        $salle->active = true;
+
+        $this->salleRepository->ajouter($salle);
+
+        $dateDebut = new \DateTimeImmutable('tomorrow 14:00:00');
+
+        $dateFin = new \DateTimeImmutable('tomorrow 14:00:00');
+
+        $dto = new CreerReservationDTO(
+            salleId: 3,
+            responsable: 'Awa Ndiaye',
+            email: 'awa.ndiaye@universite.sn',
+            motif: 'Cours d\'architecture logicielle',
+            dateDebut: $dateDebut,
+            dateFin: $dateFin
+        );
+
+        $this->expectException(
+            \App\Exception\SalleIndisponibleException::class
+        );
+
+        $this->expectExceptionMessage(
+            'La date de début doit précéder la date de fin.'
+        );
+
+        $this->service->executer($dto);
+    }
+
+    public function testDureeSuperieureAQuatreHeures(): void
+    {
+        $salle = new Salle();
+
+        $salle->id = 4;
+        $salle->nom = 'Salle E10';
+        $salle->batiment = 'E';
+        $salle->capacite = 60;
+        $salle->type = 'cours';
+        $salle->active = true;
+
+        $this->salleRepository->ajouter($salle);
+
+        $dateDebut = new \DateTimeImmutable('tomorrow 08:00:00');
+
+        $dateFin = new \DateTimeImmutable('tomorrow 14:00:00');
+
+        $dto = new CreerReservationDTO(
+            salleId: 4,
+            responsable: 'Awa Ndiaye',
+            email: 'awa.ndiaye@universite.sn',
+            motif: 'Cours d\'architecture logicielle',
+            dateDebut: $dateDebut,
+            dateFin: $dateFin
+        );
+
+        $this->expectException(
+            \App\Exception\SalleIndisponibleException::class
+        );
+
+        $this->expectExceptionMessage(
+            'La durée de réservation ne peut pas dépasser quatre heures.'
+        );
 
-    $dateFin = new \DateTimeImmutable('tomorrow 12:00:00' );
+        $this->service->executer($dto);
+    }
 
-    $dto = new CreerReservationDTO(
-        salleId: 999,
-        responsable: 'Awa Ndiaye',
-        email: 'awa.ndiaye@universite.sn',
-        motif: 'Cours d\'architecture logicielle',
-        dateDebut: $dateDebut,
-        dateFin: $dateFin
-    );
-
-    $this->expectException( \App\Exception\SalleIndisponibleException::class );
-
-    $this->expectExceptionMessage( 'La salle demandée n\'existe pas.');
-
-    $this->service->executer($dto);
-}
-
-
-public function testSalleInactive(): void
-{
-    $salle = new Salle();
-
-    $salle->id = 2;
-    $salle->nom = 'Salle C15';
-    $salle->batiment = 'C';
-    $salle->capacite = 40;
-    $salle->type = 'cours';
-    $salle->active = false;
-
-    $this->salleRepository->ajouter($salle);
-
-    $dateDebut = new \DateTimeImmutable( 'tomorrow 10:00:00' );
-
-    $dateFin = new \DateTimeImmutable( 'tomorrow 12:00:00');
-
-    $dto = new CreerReservationDTO(
-        salleId: 2,
-        responsable: 'Awa Ndiaye',
-        email: 'awa.ndiaye@universite.sn',
-        motif: 'Cours d\'architecture logicielle',
-        dateDebut: $dateDebut,
-        dateFin: $dateFin
-    );
-
-    $this->expectException( \App\Exception\SalleIndisponibleException::class );
-
-    $this->expectExceptionMessage( 'La salle demandée est inactive.' );
-
-    $this->service->executer($dto);
-}
-
-
-public function testDateFinAvantDateDebut(): void
-{
-    $salle = new Salle();
-
-    $salle->id = 3;
-    $salle->nom = 'Salle D20';
-    $salle->batiment = 'D';
-    $salle->capacite = 30;
-    $salle->type = 'cours';
-    $salle->active = true;
-
-    $this->salleRepository->ajouter($salle);
-
-    $dateDebut = new \DateTimeImmutable( 'tomorrow 14:00:00');
-
-    $dateFin = new \DateTimeImmutable( 'tomorrow 12:00:00' );
-
-    $dto = new CreerReservationDTO(
-        salleId: 3,
-        responsable: 'Awa Ndiaye',
-        email: 'awa.ndiaye@universite.sn',
-        motif: 'Cours d\'architecture logicielle',
-        dateDebut: $dateDebut,
-        dateFin: $dateFin
-    );
-
-    $this->expectException(
-        \App\Exception\SalleIndisponibleException::class
-    );
-
-    $this->expectExceptionMessage( 'La date de début doit précéder la date de fin.');
-
-    $this->service->executer($dto);
-}
-
-public function testDureeSuperieureAQuatreHeures(): void
-{
-    $salle = new Salle();
-
-    $salle->id = 4;
-    $salle->nom = 'Salle E10';
-    $salle->batiment = 'E';
-    $salle->capacite = 60;
-    $salle->type = 'cours';
-    $salle->active = true;
-
-    $this->salleRepository->ajouter($salle);
-
-    $dateDebut = new \DateTimeImmutable('tomorrow 08:00:00' );
-
-    $dateFin = new \DateTimeImmutable( 'tomorrow 14:00:00' );
-
-    $dto = new CreerReservationDTO(
-        salleId: 4,
-        responsable: 'Awa Ndiaye',
-        email: 'awa.ndiaye@universite.sn',
-        motif: 'Cours d\'architecture logicielle',
-        dateDebut: $dateDebut,
-        dateFin: $dateFin
-    );
-
-    $this->expectException( \App\Exception\SalleIndisponibleException::class);
-
-    $this->expectExceptionMessage( 'La durée de réservation ne peut pas dépasser quatre heures.');
-
-    $this->service->executer($dto);
-}
-
-public function testDatePassee(): void
-{
-    $salle = new Salle();
-
-    $salle->id = 5;
-    $salle->nom = 'Salle F05';
-    $salle->batiment = 'F';
-    $salle->capacite = 35;
-    $salle->type = 'cours';
-    $salle->active = true;
-
-    $this->salleRepository->ajouter($salle);
-
-    $dateDebut = new \DateTimeImmutable( 'yesterday 10:00:00');
-
-    $dateFin = new \DateTimeImmutable( 'yesterday 12:00:00');
-
-    $dto = new CreerReservationDTO(
-        salleId: 5,
-        responsable: 'Awa Ndiaye',
-        email: 'awa.ndiaye@universite.sn',
-        motif: 'Cours d\'architecture logicielle',
-        dateDebut: $dateDebut,
-        dateFin: $dateFin
-    );
-
-    $this->expectException(
-        \App\Exception\SalleIndisponibleException::class
-    );
-
-    $this->expectExceptionMessage(
-        'La date de début doit être dans le futur.'
-    );
-
-    $this->service->executer($dto);
-}
-
-
-public function testConflitAvecReservationExistante(): void
-{
-    $salle = new Salle();
-
-    $salle->id = 6;
-    $salle->nom = 'Salle G10';
-    $salle->batiment = 'G';
-    $salle->capacite = 50;
-    $salle->type = 'cours';
-    $salle->active = true;
-
-    $this->salleRepository->ajouter($salle);
-
-    $this->reservationRepository->definirConflit(true);
-
-    $dateDebut = new \DateTimeImmutable(
-        'tomorrow 11:30:00'
-    );
-
-    $dateFin = new \DateTimeImmutable(
-        'tomorrow 13:00:00'
-    );
-
-    $dto = new CreerReservationDTO(
-        salleId: 6,
-        responsable: 'Awa Ndiaye',
-        email: 'awa.ndiaye@universite.sn',
-        motif: 'Cours d\'architecture logicielle',
-        dateDebut: $dateDebut,
-        dateFin: $dateFin
-    );
-
-    $this->expectException(
-        \App\Exception\SalleIndisponibleException::class
-    );
-
-    $this->expectExceptionMessage(
-        'La salle est déjà réservée pour cette période.'
-    );
-
-    $this->service->executer($dto);
-}
-
-public function testReservationVoisineSansChevauchement(): void
-{
-    $salle = new Salle();
-
-    $salle->id = 7;
-    $salle->nom = 'Salle H15';
-    $salle->batiment = 'H';
-    $salle->capacite = 40;
-    $salle->type = 'cours';
-    $salle->active = true;
-
-    $this->salleRepository->ajouter($salle);
-
-    $this->reservationRepository->definirConflit(false);
-
-    $dateDebut = new \DateTimeImmutable(
-        'tomorrow 12:00:00'
-    );
-
-    $dateFin = new \DateTimeImmutable(
-        'tomorrow 14:00:00'
-    );
-
-    $dto = new CreerReservationDTO(
-        salleId: 7,
-        responsable: 'Awa Ndiaye',
-        email: 'awa.ndiaye@universite.sn',
-        motif: 'Cours d\'architecture logicielle',
-        dateDebut: $dateDebut,
-        dateFin: $dateFin
-    );
-
-    $reservation = $this->service->executer($dto);
-
-    $this->assertInstanceOf(
-        Reservation::class,
-        $reservation
-    );
-
-    $this->assertSame(
-        7,
-        $reservation->salle_id
-    );
-
-    $this->assertSame(
-        'confirmée',
-        $reservation->statut
-    );
-}
-
-
+    public function testDatePassee(): void
+    {
+        $salle = new Salle();
+
+        $salle->id = 5;
+        $salle->nom = 'Salle F05';
+        $salle->batiment = 'F';
+        $salle->capacite = 35;
+        $salle->type = 'cours';
+        $salle->active = true;
+
+        $this->salleRepository->ajouter($salle);
+
+        $dateDebut = new \DateTimeImmutable('yesterday 10:00:00');
+
+        $dateFin = new \DateTimeImmutable('yesterday 12:00:00');
+
+        $dto = new CreerReservationDTO(
+            salleId: 5,
+            responsable: 'Awa Ndiaye',
+            email: 'awa.ndiaye@universite.sn',
+            motif: 'Cours d\'architecture logicielle',
+            dateDebut: $dateDebut,
+            dateFin: $dateFin
+        );
+
+        $this->expectException(
+            \App\Exception\SalleIndisponibleException::class
+        );
+
+        $this->expectExceptionMessage(
+            'La date de début doit être dans le futur.'
+        );
+
+        $this->service->executer($dto);
+    }
+
+    public function testConflitAvecReservationExistante(): void
+    {
+        $salle = new Salle();
+
+        $salle->id = 6;
+        $salle->nom = 'Salle G10';
+        $salle->batiment = 'G';
+        $salle->capacite = 50;
+        $salle->type = 'cours';
+        $salle->active = true;
+
+        $this->salleRepository->ajouter($salle);
+
+        $this->reservationRepository->definirConflit(true);
+
+        $dateDebut = new \DateTimeImmutable('tomorrow 11:30:00');
+
+        $dateFin = new \DateTimeImmutable('tomorrow 13:00:00');
+
+        $dto = new CreerReservationDTO(
+            salleId: 6,
+            responsable: 'Awa Ndiaye',
+            email: 'awa.ndiaye@universite.sn',
+            motif: 'Cours d\'architecture logicielle',
+            dateDebut: $dateDebut,
+            dateFin: $dateFin
+        );
+
+        $this->expectException(
+            \App\Exception\SalleIndisponibleException::class
+        );
+
+        $this->expectExceptionMessage(
+            'La salle est déjà réservée pour cette période.'
+        );
+
+        $this->service->executer($dto);
+    }
+
+    public function testReservationVoisineSansChevauchement(): void
+    {
+        $salle = new Salle();
+
+        $salle->id = 7;
+        $salle->nom = 'Salle H15';
+        $salle->batiment = 'H';
+        $salle->capacite = 40;
+        $salle->type = 'cours';
+        $salle->active = true;
+
+        $this->salleRepository->ajouter($salle);
+
+        $this->reservationRepository->definirConflit(false);
+
+        $dateDebut = new \DateTimeImmutable('tomorrow 12:00:00');
+
+        $dateFin = new \DateTimeImmutable('tomorrow 14:00:00');
+
+        $dto = new CreerReservationDTO(
+            salleId: 7,
+            responsable: 'Awa Ndiaye',
+            email: 'awa.ndiaye@universite.sn',
+            motif: 'Cours d\'architecture logicielle',
+            dateDebut: $dateDebut,
+            dateFin: $dateFin
+        );
+
+        $reservation = $this->service->executer($dto);
+
+        $this->assertInstanceOf(
+            Reservation::class,
+            $reservation
+        );
+
+        $this->assertSame(
+            7,
+            $reservation->salle_id
+        );
+
+        $this->assertSame(
+            'confirmée',
+            $reservation->statut
+        );
+    }
 }
