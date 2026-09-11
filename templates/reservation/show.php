@@ -2,23 +2,25 @@
 
 $title = 'Détail de la réservation';
 
-ob_start();
 ?>
 
 <div class="page-header">
-    <div>
-        <h1>Détail de la réservation</h1>
 
+    <div class="page-header-left">
 
-    <p class="page-subtitle">
-        Informations concernant cette réservation.
-    </p>
+        <h1 class="page-title">Détail de la réservation</h1>
+
+        <p class="page-subtitle">
+            Informations concernant cette réservation.
+        </p>
+
+    </div>
+
 </div>
 
+<div class="detail-card">
 
-</div>
-
-<ul class="detail-list">
+    <ul class="detail-list">
 
 
 <li>
@@ -145,8 +147,6 @@ ob_start();
 
 </div>
 
-<?php
-$content = ob_get_clean();
+</div>
 
-require dirname(__DIR__) . '/layout/base.php';
-?>
+

@@ -1,18 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\DTO\ConnexionDTO;
 use App\Exception\AuthentificationException;
 use App\Service\AuthentificationServiceInterface;
 use App\Validation\ConnexionValidator;
+use App\Renderer\RendererInterface;
 
-class AuthController
+class AuthController extends AbstractController
 {
     public function __construct(
         private ConnexionValidator $validator,
-        private AuthentificationServiceInterface $authentificationService
+        private AuthentificationServiceInterface $authentificationService,
+        RendererInterface $renderer
     ) {
+
+        parent::__construct($renderer);
     }
 
     public function login(): void
@@ -20,7 +26,10 @@ class AuthController
         $errors = [];
         $data = [];
 
-        require dirname(__DIR__, 2) . '/templates/auth/login.php';
+        $this->renderView('auth/login', [
+            'errors' => $errors,
+            'data' => $data,
+        ]);
     }
 
     public function authenticate(): void
@@ -33,22 +42,23 @@ class AuthController
             $errors = $result->errors();
             $data = $result->data();
 
-            require dirname(__DIR__, 2) . '/templates/auth/login.php';
+            $this->renderView('auth/login', [
+                'errors' => $errors,
+                'data' => $data,
+            ]);
 
             return;
         }
 
         $validatedData = $result->data();
 
-        $dto = new ConnexionDTO(
-            $validatedData['email'],
-            $validatedData['password']
-        );
+        $dto = ConnexionDTO::fromToErray($validatedData);
 
         try {
             $this->authentificationService->connecter($dto);
 
             header('Location: /salles');
+
             exit;
         } catch (AuthentificationException $exception) {
             $errors = [
@@ -57,7 +67,10 @@ class AuthController
 
             $data = $validatedData;
 
-            require dirname(__DIR__, 2) . '/templates/auth/login.php';
+            $this->renderView('auth/login', [
+                'errors' => $errors,
+                'data' => $data,
+            ]);
         }
     }
 
@@ -67,6 +80,7 @@ class AuthController
         session_destroy();
 
         header('Location: /login');
+
         exit;
     }
 }

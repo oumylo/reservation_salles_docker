@@ -2,18 +2,23 @@
 
     $title = 'Détail de la salle';
 
-    ob_start();
     ?>
 
-    <div class="page-header">
-        <div>
-            <h1>Détail de la salle</h1>
+<div class="page-header">
+
+    <div class="page-header-left">
+
+        <h1 class="page-title">Détail de la salle</h1>
+
         <p class="page-subtitle">
             Informations concernant cette salle.
         </p>
-    </div>
 
     </div>
+
+</div>
+
+<div class="detail-card">
 
     <ul class="detail-list">
 
@@ -73,8 +78,5 @@
     <a href="/salles" class="btn btn-secondary"> Retour à la liste </a>
 </div>
 
-    <?php
-    $content = ob_get_clean();
+</div>
 
-    require dirname(__DIR__) . '/layout/base.php';
-    ?>

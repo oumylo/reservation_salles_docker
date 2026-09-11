@@ -2,21 +2,25 @@
 
 $title = 'Accès interdit';
 
-ob_start();
 ?>
 
-<h1>Accès interdit</h1>
+<div class="error-page">
 
-<p>
-    Vous n'avez pas les droits nécessaires pour effectuer cette action.
-</p>
+    <h1 class="error-code">403</h1>
 
-<p>
-    <a href="/salles">Retour aux salles</a>
-</p>
+    <p class="error-message">
+        Accès interdit
+    </p>
 
-<?php
-$content = ob_get_clean();
+    <p class="error-detail">
+        Vous n'avez pas les droits nécessaires pour effectuer cette action.
+    </p>
 
-require dirname(__DIR__) . '/layout/base.php';
+    <p>
+        <a href="/salles" class="btn">
+            Retour aux salles
+        </a>
+    </p>
+
+</div>
 

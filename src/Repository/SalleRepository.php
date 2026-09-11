@@ -6,14 +6,9 @@ use App\Model\Salle;
 
 class SalleRepository implements SalleRepositoryInterface
 {
-    public function lister()
+    public function lister(int $page = 1)
     {
-        // On récupère le numéro de page envoyé dans l'URL.
-        // Exemple : /salles?page=2
-        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-
-        // Si quelqu'un met ?page=0 ou une valeur négative,
-        // on revient à la première page.
+        
         if ($page < 1) {
             $page = 1;
         }
@@ -49,5 +44,31 @@ class SalleRepository implements SalleRepositoryInterface
         }
 
         return $salle->delete();
+    }
+
+    public function sallesLesPlusUtilisees(): array
+    {
+        return Salle::query()
+            ->select(
+                'salles.id',
+                'salles.nom',
+                'salles.batiment'
+            )
+            ->join(
+                'reservations',
+                'reservations.salle_id',
+                '=',
+                'salles.id'
+            )
+            ->where('reservations.statut', 'confirmée')
+            ->selectRaw('COUNT(reservations.id) as nombre_reservations')
+            ->groupBy(
+                'salles.id',
+                'salles.nom',
+                'salles.batiment'
+            )
+            ->orderByDesc('nombre_reservations')
+            ->get()
+            ->toArray();
     }
 }

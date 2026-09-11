@@ -18,6 +18,7 @@ class CreerReservationService
 
     public function executer(CreerReservationDTO $dto): Reservation
     {
+        
         $this->disponibiliteService->verifier($dto);
 
         $reservation = new Reservation();
@@ -30,6 +31,7 @@ class CreerReservationService
         $reservation->date_fin = $dto->dateFin;
         $reservation->statut = 'confirmée';
 
+    
         return $this->reservationRepository->enregistrer($reservation);
     }
 }

@@ -14,11 +14,20 @@ $active = $data['active'] ?? true;
 
 $formAction = $salle !== null ? '/salles/' . (int) $salle->id . '/edit' : '/salles';
 
-ob_start();
 ?>
 
 <div class="page-header">
-    <h1><?= htmlspecialchars($title) ?></h1>
+
+    <div class="page-header-left">
+
+        <h1 class="page-title"><?= htmlspecialchars($title) ?></h1>
+
+        <p class="page-subtitle">
+            Renseignez les informations principales de la salle.
+        </p>
+
+    </div>
+
 </div>
 
 <div class="form-card">
@@ -143,7 +152,3 @@ ob_start();
     </form>
 </div>
 
-<?php
-$content = ob_get_clean();
-
-require dirname(__DIR__) . '/layout/base.php';

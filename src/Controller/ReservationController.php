@@ -8,54 +8,67 @@ use App\DTO\CreerReservationDTO;
 use App\Exception\ReservationIntrouvableException;
 use App\Exception\SalleIndisponibleException;
 use App\Service\AnnulerReservationService;
+use App\Service\AutorisationGuard;
 use App\Service\AutorisationService;
 use App\Service\CreerReservationService;
 use App\Service\ReservationConsultationService;
 use App\Service\ReservationValidationService;
+use App\Renderer\RendererInterface;
 
 
-class ReservationController
+
+class ReservationController extends AbstractController
 {
     public function __construct(
         private ReservationConsultationService $reservationConsultationService,
         private ReservationValidationService $validationService,
         private CreerReservationService $creerReservationService,
         private AnnulerReservationService $annulerReservationService,
-        private AutorisationService $autorisationService
+        private AutorisationService $autorisationService,
+        private AutorisationGuard $autorisationGuard,
+         RendererInterface $renderer
     ) {
+
+         parent::__construct($renderer);
     }
 
     public function index(): void
     {
-        $this->autorisationService->exigerConnexion();
+        $this->autorisationGuard->exigerConnexion();
 
         $reservations = $this->reservationConsultationService->lister();
 
         $isAdmin = $this->autorisationService->estAdmin();
 
-        require dirname(__DIR__, 2) . '/templates/reservation/index.php';
+        $this->renderView('reservation/index', [
+            'reservations' => $reservations,
+            'isAdmin' => $isAdmin,
+        ]);
     }
 
     public function show(int $id): void
     {
-        $this->autorisationService->exigerConnexion();
+        $this->autorisationGuard->exigerConnexion();
 
-        $reservation = $this->reservationConsultationService->trouver($id);
+        $reservation =
+            $this->reservationConsultationService->trouver($id);
 
         if ($reservation === null) {
             http_response_code(404);
 
-            require dirname(__DIR__, 2) . '/templates/error/404.php';
+            $this->renderView('error/404');
 
             return;
         }
 
-        require dirname(__DIR__, 2) . '/templates/reservation/show.php';
+        $this->renderView('reservation/show', [
+            'reservation' => $reservation,
+        ]);
     }
 
     public function create(): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         $errors = [];
         $data = [];
@@ -65,7 +78,7 @@ class ReservationController
 
     public function store(): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         $data = $_POST;
 
@@ -82,14 +95,7 @@ class ReservationController
 
         $validatedData = $result->data();
 
-        $dto = new CreerReservationDTO(
-            (int) $validatedData['salle_id'],
-            $validatedData['responsable'],
-            $validatedData['email'],
-            $validatedData['motif'],
-            new \DateTimeImmutable($validatedData['date_debut']),
-            new \DateTimeImmutable($validatedData['date_fin'])
-        );
+        $dto = CreerReservationDTO::fromToErray($validatedData);
 
         try {
             $this->creerReservationService->executer($dto);
@@ -110,7 +116,7 @@ class ReservationController
 
     public function cancel(int $id): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         try {
             $this->annulerReservationService->executer($id);
@@ -121,18 +127,26 @@ class ReservationController
         } catch (ReservationIntrouvableException $exception) {
             http_response_code(404);
 
-            require dirname(__DIR__, 2) . '/templates/error/404.php';
+            $this->renderView('error/404');
 
             return;
         }
     }
 
-    private function afficherFormulaire(array $data, array $errors): void
-    {
-        $salles = $this->reservationConsultationService->listerSalles();
+    private function afficherFormulaire(
+        array $data,
+        array $errors
+    ): void {
+        $salles =
+            $this->reservationConsultationService->listerSalles();
 
         $action = '/reservations';
 
-        require dirname(__DIR__, 2) . '/templates/reservation/form.php';
+        $this->renderView('reservation/form', [
+            'salles' => $salles,
+            'action' => $action,
+            'data' => $data,
+            'errors' => $errors,
+        ]);
     }
 }

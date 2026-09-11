@@ -9,4 +9,12 @@ final readonly class ConnexionDTO
         public string $password
     ) {
     }
+
+    public static function fromToErray(array $donnees): self
+    {
+        return new self(
+            $donnees['email'],
+            $donnees['password']
+        );
+    }
 }

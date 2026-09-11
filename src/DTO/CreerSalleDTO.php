@@ -12,4 +12,15 @@ readonly class CreerSalleDTO
         public bool $active
     ) {
     }
+
+    public static function fromToErray(array $donnees): self
+    {
+        return new self(
+            $donnees['nom'],
+            $donnees['batiment'],
+            (int) $donnees['capacite'],
+            $donnees['type'],
+            (bool) $donnees['active']
+        );
+    }
 }

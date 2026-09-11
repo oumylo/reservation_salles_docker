@@ -13,4 +13,6 @@ interface SalleRepositoryInterface
     public function enregistrer(Salle $salle): Salle;
 
     public function supprimer(int $id): bool;
+
+    public function sallesLesPlusUtilisees(): array;
 }

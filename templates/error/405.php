@@ -2,23 +2,25 @@
 
 $title = 'Méthode non autorisée';
 
-ob_start();
 ?>
 
-<h1>405 - Méthode non autorisée</h1>
+<div class="error-page">
 
-<p>
-    La méthode HTTP utilisée n'est pas autorisée
-    pour cette URL.
-</p>
+    <h1 class="error-code">405</h1>
 
-<p>
-    <a href="/salles">
-        Retour aux salles
-    </a>
-</p>
+    <p class="error-message">
+        Méthode non autorisée
+    </p>
 
-<?php
-$content = ob_get_clean();
+    <p class="error-detail">
+        La méthode HTTP utilisée n'est pas autorisée pour cette URL.
+    </p>
 
-require dirname(__DIR__) . '/layout/base.php';
+    <p>
+        <a href="/salles" class="btn">
+            Retour aux salles
+        </a>
+    </p>
+
+</div>
+

@@ -39,14 +39,14 @@ final class SalleValidator implements ValidatorInterface
         ];
 
         foreach ($rules as $champ => $regle) {
-
             try {
-
                 $regle->assert($data[$champ] ?? null);
+            } catch (NestedValidationException $exception) {
 
-            } catch (NestedValidationException $e) {
-
-                $errors[$champ] = $e->getMessages();
+               
+                $errors[$champ] = array_keys(
+                    $exception->getMessages()
+                );
             }
         }
 

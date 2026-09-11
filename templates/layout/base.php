@@ -38,9 +38,13 @@ $estPageConnexion = ($_SERVER['REQUEST_URI'] ?? '') === '/login';
 
 <?php if ($estConnecte && !$estPageConnexion): ?>
 
-    <header>
+    <header class="site-header">
 
-        <nav>
+        <nav class="nav-links">
+
+            <a href="/salles" class="nav-brand">
+                <span>Gestion des salles</span>
+            </a>
 
             <a href="/salles">
                 Salles
@@ -53,10 +57,9 @@ $estPageConnexion = ($_SERVER['REQUEST_URI'] ?? '') === '/login';
             <form
                 method="POST"
                 action="/logout"
-                style="display: inline;"
             >
 
-                <button type="submit">
+                <button type="submit" class="nav-logout">
                     Déconnexion
                 </button>
 

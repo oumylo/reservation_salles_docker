@@ -7,14 +7,17 @@ namespace App\Controller;
 use App\DTO\CreerSalleDTO;
 use App\Exception\SalleAvecReservationsException;
 use App\Exception\SalleNonTrouveeException;
+use App\Service\AutorisationGuard;
 use App\Service\AutorisationService;
 use App\Service\CreerSalleService;
 use App\Service\ModifierSalleService;
 use App\Service\SalleConsultationService;
 use App\Service\SalleValidationService;
 use App\Service\SupprimerSalleService;
+use App\Service\SalleStatistiqueService;
+use App\Renderer\RendererInterface;
 
-class SalleController
+class SalleController extends AbstractController
 {
     public function __construct(
         private SalleConsultationService $salleConsultationService,
@@ -22,52 +25,72 @@ class SalleController
         private CreerSalleService $creerSalleService,
         private ModifierSalleService $modifierSalleService,
         private SupprimerSalleService $supprimerSalleService,
-        private AutorisationService $autorisationService
+        private AutorisationService $autorisationService,
+        private AutorisationGuard $autorisationGuard,
+        private SalleStatistiqueService $salleStatistiqueService,
+        RendererInterface $renderer
     ) {
+
+     parent::__construct($renderer);
     }
 
     public function index(): void
     {
-        $this->autorisationService->exigerConnexion();
+        $this->autorisationGuard->exigerConnexion();
 
-        $salles = $this->salleConsultationService->lister();
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
+
+        $salles = $this->salleConsultationService->lister($page);
 
         $isAdmin = $this->autorisationService->estAdmin();
 
-        require dirname(__DIR__, 2) . '/templates/salle/index.php';
+        $sallesLesPlusUtilisees =
+            $this->salleStatistiqueService->sallesLesPlusUtilisees();
+
+        $this->renderView('salle/index', [
+            'salles' => $salles,
+            'isAdmin' => $isAdmin,
+            'sallesLesPlusUtilisees' => $sallesLesPlusUtilisees,
+        ]);
     }
 
     public function show(int $id): void
     {
-        $this->autorisationService->exigerConnexion();
+        $this->autorisationGuard->exigerConnexion();
 
         $salle = $this->salleConsultationService->trouver($id);
 
         if ($salle === null) {
             http_response_code(404);
 
-            require dirname(__DIR__, 2) . '/templates/error/404.php';
+            $this->renderView('error/404');
 
             return;
         }
 
-        require dirname(__DIR__, 2) . '/templates/salle/show.php';
+        $this->renderView('salle/show', [
+            'salle' => $salle,
+        ]);
     }
 
     public function create(): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         $errors = [];
         $data = [];
         $salle = null;
 
-        require dirname(__DIR__, 2) . '/templates/salle/form.php';
+        $this->renderView('salle/form', [
+            'errors' => $errors,
+            'data' => $data,
+            'salle' => $salle,
+        ]);
     }
 
     public function store(): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         $data = $_POST;
 
@@ -82,20 +105,18 @@ class SalleController
 
             $salle = null;
 
-            require dirname(__DIR__, 2) . '/templates/salle/form.php';
+            $this->renderView('salle/form', [
+                'errors' => $errors,
+                'data' => $data,
+                'salle' => $salle,
+            ]);
 
             return;
         }
 
         $validatedData = $result->data();
 
-        $dto = new CreerSalleDTO(
-            $validatedData['nom'],
-            $validatedData['batiment'],
-            (int) $validatedData['capacite'],
-            $validatedData['type'],
-            $validatedData['active']
-        );
+        $dto = CreerSalleDTO::fromToErray($validatedData);
 
         $this->creerSalleService->executer($dto);
 
@@ -106,14 +127,14 @@ class SalleController
 
     public function edit(int $id): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         $salle = $this->salleConsultationService->trouver($id);
 
         if ($salle === null) {
             http_response_code(404);
 
-            require dirname(__DIR__, 2) . '/templates/error/404.php';
+            $this->renderView('error/404');
 
             return;
         }
@@ -130,12 +151,17 @@ class SalleController
 
         $action = '/salles/' . $id . '/edit';
 
-        require dirname(__DIR__, 2) . '/templates/salle/form.php';
+        $this->renderView('salle/form', [
+            'errors' => $errors,
+            'data' => $data,
+            'salle' => $salle,
+            'action' => $action,
+        ]);
     }
 
     public function update(int $id): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         $data = $_POST;
 
@@ -150,20 +176,18 @@ class SalleController
 
             $action = '/salles/' . $id . '/edit';
 
-            require dirname(__DIR__, 2) . '/templates/salle/form.php';
+            $this->renderView('salle/form', [
+                'errors' => $errors,
+                'data' => $data,
+                'action' => $action,
+            ]);
 
             return;
         }
 
         $validatedData = $result->data();
 
-        $dto = new CreerSalleDTO(
-            $validatedData['nom'],
-            $validatedData['batiment'],
-            (int) $validatedData['capacite'],
-            $validatedData['type'],
-            $validatedData['active']
-        );
+        $dto = CreerSalleDTO::fromToErray($validatedData);
 
         try {
             $this->modifierSalleService->executer($id, $dto);
@@ -174,7 +198,7 @@ class SalleController
         } catch (SalleNonTrouveeException $exception) {
             http_response_code(404);
 
-            require dirname(__DIR__, 2) . '/templates/error/404.php';
+            $this->renderView('error/404');
 
             return;
         }
@@ -182,7 +206,7 @@ class SalleController
 
     public function delete(int $id): void
     {
-        $this->autorisationService->exigerAdmin();
+        $this->autorisationGuard->exigerAdmin();
 
         try {
             $this->supprimerSalleService->executer($id);
@@ -193,7 +217,7 @@ class SalleController
         } catch (SalleNonTrouveeException $exception) {
             http_response_code(404);
 
-            require dirname(__DIR__, 2) . '/templates/error/404.php';
+            $this->renderView('error/404');
 
             return;
         } catch (SalleAvecReservationsException $exception) {
@@ -203,7 +227,15 @@ class SalleController
 
             $isAdmin = $this->autorisationService->estAdmin();
 
-            require dirname(__DIR__, 2) . '/templates/salle/index.php';
+            $sallesLesPlusUtilisees =
+                $this->salleStatistiqueService->sallesLesPlusUtilisees();
+
+            $this->renderView('salle/index', [
+                'salles' => $salles,
+                'isAdmin' => $isAdmin,
+                'sallesLesPlusUtilisees' => $sallesLesPlusUtilisees,
+                'messageErreur' => $messageErreur,
+            ]);
 
             return;
         }

@@ -15,33 +15,37 @@ final class ReservationValidator implements ValidatorInterface
 
         $rules = [
             'salle_id' => v::stringType()
-                ->digit()
-                ->notEmpty(),
+                ->notEmpty()
+                ->digit(),
 
             'responsable' => v::stringType()
                 ->notEmpty()
                 ->length(2, 120),
 
-            'email' => v::email(),
+            'email' => v::stringType()
+                ->notEmpty()
+                ->email(),
 
             'motif' => v::stringType()
                 ->notEmpty()
                 ->length(5, 255),
 
-            'date_debut' => v::dateTime(),
+            'date_debut' => v::stringType()
+                ->notEmpty()
+                ->dateTime(),
 
-            'date_fin' => v::dateTime(),
+            'date_fin' => v::stringType()
+                ->notEmpty()
+                ->dateTime(),
         ];
 
         foreach ($rules as $champ => $regle) {
-
             try {
-
                 $regle->assert($data[$champ] ?? null);
-
-            } catch (NestedValidationException $e) {
-
-                $errors[$champ] = $e->getMessages();
+            } catch (NestedValidationException $exception) {
+                $errors[$champ] = array_keys(
+                    $exception->getMessages()
+                );
             }
         }
 

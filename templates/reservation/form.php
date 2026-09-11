@@ -15,11 +15,20 @@ $motif = $data['motif'] ?? '';
 $dateDebut = $data['date_debut'] ?? '';
 $dateFin = $data['date_fin'] ?? '';
 
-ob_start();
 ?>
 
 <div class="page-header">
-    <h1><?= htmlspecialchars($title) ?></h1>
+
+    <div class="page-header-left">
+
+        <h1 class="page-title"><?= htmlspecialchars($title) ?></h1>
+
+        <p class="page-subtitle">
+            Planifiez une réservation pour une salle disponible.
+        </p>
+
+    </div>
+
 </div>
 
 <div class="form-card">
@@ -155,8 +164,3 @@ ob_start();
 
 </div>
 
-<?php
-
-$content = ob_get_clean();
-
-require dirname(__DIR__) . '/layout/base.php';

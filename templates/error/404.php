@@ -2,22 +2,25 @@
 
 $title = 'Page introuvable';
 
-ob_start();
 ?>
 
-<h1>404 - Page introuvable</h1>
+<div class="error-page">
 
-<p>
-    La page demandée n'existe pas.
-</p>
+    <h1 class="error-code">404</h1>
 
-<p>
-    <a href="/salles">
-        Retour aux salles
-    </a>
-</p>
+    <p class="error-message">
+        Page introuvable
+    </p>
 
-<?php
-$content = ob_get_clean();
+    <p class="error-detail">
+        La page demandée n'existe pas.
+    </p>
 
-require dirname(__DIR__) . '/layout/base.php';
+    <p>
+        <a href="/salles" class="btn">
+            Retour aux salles
+        </a>
+    </p>
+
+</div>
+

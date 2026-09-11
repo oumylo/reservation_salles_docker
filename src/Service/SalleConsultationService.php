@@ -14,9 +14,9 @@ class SalleConsultationService
     ) {
     }
 
-    public function lister()
+    public function lister(int $page = 1)
     {
-        return $this->salleRepository->lister();
+        return $this->salleRepository->lister($page);
     }
 
     public function trouver(int $id): ?Salle
