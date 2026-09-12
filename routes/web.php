@@ -29,6 +29,18 @@ return function (RouteCollector $router): void {
 
     $router->addRoute(
         'GET',
+        '/register',
+        [AuthController::class, 'register']
+    );
+
+    $router->addRoute(
+        'POST',
+        '/register',
+        [AuthController::class, 'storeRegister']
+    );
+
+    $router->addRoute(
+        'GET',
         '/',
         [
             SalleController::class,

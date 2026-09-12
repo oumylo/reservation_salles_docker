@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Validation;
 
 use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Validator as v;
 
-final class ReservationValidator implements ValidatorInterface
+final class ReservationValidator implements ReservationValidatorInterface
 {
     public function validate(array $data): ValidationResult
     {

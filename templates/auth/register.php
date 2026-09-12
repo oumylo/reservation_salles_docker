@@ -1,6 +1,6 @@
 <?php
 
-$title = 'Connexion';
+$title = 'Inscription';
 
 ?>
 
@@ -108,16 +108,6 @@ $title = 'Connexion';
         transform: translateY(1px);
     }
 
-    .login-error {
-        margin-bottom: 22px;
-        padding: 12px 14px;
-        border-radius: 7px;
-        background-color: #fef2f2;
-        border: 1px solid #fecaca;
-        color: #b91c1c;
-        font-size: 14px;
-    }
-
     .field-error {
         margin: 7px 0 0;
         color: #dc2626;
@@ -167,29 +157,48 @@ $title = 'Connexion';
 
         <div class="login-header">
 
-            <h1>Connexion</h1>
+            <h1>Inscription</h1>
 
             <p>
-                Connectez-vous à votre espace de gestion.
+                Créez votre compte pour accéder à l'espace de gestion.
             </p>
 
         </div>
 
 
-        <?php if (!empty($errors['authentification'])): ?>
+        <form method="POST" action="/register">
 
-            <div class="login-error">
 
-                <?= htmlspecialchars(
-                    $errors['authentification']
-                ) ?>
+            <div class="form-group">
+
+                <label for="nom">
+                    Nom complet
+                </label>
+
+                <input
+                    type="text"
+                    id="nom"
+                    name="nom"
+                    value="<?= htmlspecialchars(
+                        $data['nom'] ?? ''
+                    ) ?>"
+                    placeholder="Votre nom complet"
+                >
+
+
+                <?php if (!empty($errors['nom'])): ?>
+
+                    <?php foreach ($errors['nom'] as $error): ?>
+
+                        <p class="field-error">
+                            <?= htmlspecialchars($error) ?>
+                        </p>
+
+                    <?php endforeach; ?>
+
+                <?php endif; ?>
 
             </div>
-
-        <?php endif; ?>
-
-
-        <form method="POST" action="/login">
 
 
             <div class="form-group">
@@ -234,7 +243,7 @@ $title = 'Connexion';
                     type="password"
                     id="password"
                     name="password"
-                    placeholder="Votre mot de passe"
+                    placeholder="8 caractères minimum"
                 >
 
 
@@ -253,17 +262,42 @@ $title = 'Connexion';
             </div>
 
 
+            <div class="form-group">
+
+                <label for="password_confirmation">
+                    Confirmer le mot de passe
+                </label>
+
+                <input
+                    type="password"
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    placeholder="Ressaisissez le mot de passe"
+                >
+
+
+                <?php if (!empty($errors['password_confirmation'])): ?>
+
+                    <p class="field-error">
+                        Les mots de passe ne correspondent pas.
+                    </p>
+
+                <?php endif; ?>
+
+            </div>
+
+
             <button
                 type="submit"
                 class="login-button"
             >
-                Se connecter
+                S'inscrire
             </button>
 
 
             <div class="login-footer">
-                Pas encore de compte ?
-                <a href="/register">S'inscrire</a>
+                Déjà un compte ?
+                <a href="/login">Se connecter</a>
             </div>
 
 

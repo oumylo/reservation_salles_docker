@@ -6,7 +6,7 @@ use App\DTO\CreerSalleDTO;
 use App\Model\Salle;
 use App\Repository\SalleRepositoryInterface;
 
-class CreerSalleService
+class CreerSalleService implements CreerSalleServiceInterface
 {
     public function __construct(
         private SalleRepositoryInterface $salleRepository

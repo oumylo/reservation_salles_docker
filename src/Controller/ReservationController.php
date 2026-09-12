@@ -4,40 +4,37 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\DTO\CreerReservationDTO;
+use App\DTO\CreerReservationBuilderInterface;
 use App\Exception\ReservationIntrouvableException;
 use App\Exception\SalleIndisponibleException;
-use App\Service\AnnulerReservationService;
-use App\Service\AutorisationGuard;
-use App\Service\AutorisationService;
-use App\Service\CreerReservationService;
-use App\Service\ReservationConsultationService;
-use App\Service\ReservationValidationService;
 use App\Renderer\RendererInterface;
+use App\Service\AnnulerReservationServiceInterface;
+use App\Service\AutorisationServiceInterface;
+use App\Service\CreerReservationServiceInterface;
+use App\Service\ReservationConsultationServiceInterface;
+use App\Service\ValidationMessageInterface;
+use App\Validation\ReservationValidatorInterface;
 
-
-
-class ReservationController extends AbstractController
+final class ReservationController extends AbstractController
 {
     public function __construct(
-        private ReservationConsultationService $reservationConsultationService,
-        private ReservationValidationService $validationService,
-        private CreerReservationService $creerReservationService,
-        private AnnulerReservationService $annulerReservationService,
-        private AutorisationService $autorisationService,
-        private AutorisationGuard $autorisationGuard,
-         RendererInterface $renderer
+        private ReservationConsultationServiceInterface $reservationConsultationService,
+        private ReservationValidatorInterface $validator,
+        private ValidationMessageInterface $validationMessage,
+        private CreerReservationBuilderInterface $builder,
+        private CreerReservationServiceInterface $creerReservationService,
+        private AnnulerReservationServiceInterface $annulerReservationService,
+        private AutorisationServiceInterface $autorisationService,
+        RendererInterface $renderer
     ) {
-
-         parent::__construct($renderer);
+        parent::__construct($renderer);
     }
 
     public function index(): void
     {
-        $this->autorisationGuard->exigerConnexion();
+        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 
-        $reservations = $this->reservationConsultationService->lister();
-
+        $reservations = $this->reservationConsultationService->lister($page);
         $isAdmin = $this->autorisationService->estAdmin();
 
         $this->renderView('reservation/index', [
@@ -48,14 +45,10 @@ class ReservationController extends AbstractController
 
     public function show(int $id): void
     {
-        $this->autorisationGuard->exigerConnexion();
-
-        $reservation =
-            $this->reservationConsultationService->trouver($id);
+        $reservation = $this->reservationConsultationService->trouver($id);
 
         if ($reservation === null) {
             http_response_code(404);
-
             $this->renderView('error/404');
 
             return;
@@ -68,68 +61,51 @@ class ReservationController extends AbstractController
 
     public function create(): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
-        $errors = [];
-        $data = [];
-
-        $this->afficherFormulaire($data, $errors);
+        $this->afficherFormulaire([], []);
     }
 
     public function store(): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
         $data = $_POST;
 
-        $result = $this->validationService->valider($data);
+        $result = $this->validator->validate($data);
 
         if (!$result->isValid()) {
-            $errors = $result->errors();
-            $data = $result->data();
-
-            $this->afficherFormulaire($data, $errors);
+            $this->afficherFormulaire(
+                $result->data(),
+                $this->messages($result->errors())
+            );
 
             return;
         }
 
-        $validatedData = $result->data();
-
-        $dto = CreerReservationDTO::fromToErray($validatedData);
+        $dto = $this->builder
+            ->fromArray($result->data())
+            ->build();
 
         try {
             $this->creerReservationService->executer($dto);
 
             header('Location: /reservations');
-
             exit;
         } catch (SalleIndisponibleException $exception) {
-            $errors = [
-                'date_debut' => $exception->getMessage()
-            ];
-
-            $data = $validatedData;
-
-            $this->afficherFormulaire($data, $errors);
+            $this->afficherFormulaire(
+                $result->data(),
+                ['date_debut' => $exception->getMessage()]
+            );
         }
     }
 
     public function cancel(int $id): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
         try {
             $this->annulerReservationService->executer($id);
 
             header('Location: /reservations');
-
             exit;
-        } catch (ReservationIntrouvableException $exception) {
+        } catch (ReservationIntrouvableException) {
             http_response_code(404);
-
             $this->renderView('error/404');
-
-            return;
         }
     }
 
@@ -137,16 +113,25 @@ class ReservationController extends AbstractController
         array $data,
         array $errors
     ): void {
-        $salles =
-            $this->reservationConsultationService->listerSalles();
-
-        $action = '/reservations';
-
         $this->renderView('reservation/form', [
-            'salles' => $salles,
-            'action' => $action,
+            'salles' => $this->reservationConsultationService->listerSalles(),
+            'action' => '/reservations',
             'data' => $data,
             'errors' => $errors,
         ]);
+    }
+
+    private function messages(array $errors): array
+    {
+        $messages = [];
+
+        foreach ($errors as $champ => $codes) {
+            $messages[$champ] = $this->validationMessage->message(
+                $champ,
+                $codes
+            );
+        }
+
+        return $messages;
     }
 }

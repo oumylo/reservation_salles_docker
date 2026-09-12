@@ -23,6 +23,14 @@ class SalleRepository implements SalleRepositoryInterface
             );
     }
 
+    public function listerToutes(): array
+    {
+        return Salle::query()
+            ->orderBy('nom')
+            ->get()
+            ->all();
+    }
+
     public function trouver(int $id): ?Salle
     {
         return Salle::find($id);

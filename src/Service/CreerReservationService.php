@@ -1,17 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Service;
 
 use App\DTO\CreerReservationDTO;
 use App\Model\Reservation;
 use App\Repository\ReservationRepositoryInterface;
 
-class CreerReservationService
+class CreerReservationService implements CreerReservationServiceInterface
 {
     public function __construct(
-        private ReservationDisponibiliteService $disponibiliteService,
+        private ReservationDisponibiliteServiceInterface $disponibiliteService,
         private ReservationRepositoryInterface $reservationRepository
     ) {
     }

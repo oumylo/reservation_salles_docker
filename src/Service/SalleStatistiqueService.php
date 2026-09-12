@@ -4,7 +4,7 @@ namespace App\Service;
 
 use App\Repository\SalleRepositoryInterface;
 
-class SalleStatistiqueService
+class SalleStatistiqueService implements SalleStatistiqueServiceInterface
 {
     public function __construct(
         private SalleRepositoryInterface $salleRepository

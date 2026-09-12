@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Service;
 
 use App\DTO\CreerReservationDTO;
@@ -9,7 +7,7 @@ use App\Exception\SalleIndisponibleException;
 use App\Repository\ReservationRepositoryInterface;
 use App\Repository\SalleRepositoryInterface;
 
-class ReservationDisponibiliteService
+class ReservationDisponibiliteService implements ReservationDisponibiliteServiceInterface
 {
     public function __construct(
         private SalleRepositoryInterface $salleRepository,
@@ -39,7 +37,6 @@ class ReservationDisponibiliteService
                 'La date de début doit précéder la date de fin.'
             );
         }
-
 
         $dureeEnSecondes =
             $dto->dateFin->getTimestamp()

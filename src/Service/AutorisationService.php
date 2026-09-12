@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-class AutorisationService
+class AutorisationService implements AutorisationServiceInterface
 {
     public function estConnecte(): bool
     {

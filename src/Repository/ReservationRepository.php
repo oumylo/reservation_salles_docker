@@ -1,17 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Repository;
 
 use App\Model\Reservation;
 
 class ReservationRepository implements ReservationRepositoryInterface
 {
-    public function lister()
+    public function lister(int $page = 1)
     {
-        $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
-
         if ($page < 1) {
             $page = 1;
         }

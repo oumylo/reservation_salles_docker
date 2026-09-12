@@ -1,10 +1,8 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Service;
 
-final class ValidationMessageService
+final class ValidationMessageService implements ValidationMessageInterface
 {
     public function message(string $champ, array $codes): string
     {
@@ -14,7 +12,6 @@ final class ValidationMessageService
             : ($codes[0] ?? null);
 
         return match ($champ) {
-
 
             'nom' => match ($code) {
                 'notEmpty' => 'Le nom de la salle est obligatoire.',
@@ -45,7 +42,6 @@ final class ValidationMessageService
                 'boolType' => 'Le statut de la salle est invalide.',
                 default => 'Le statut de la salle est invalide.',
             },
-
 
             'salle_id' => match ($code) {
                 'notEmpty' => 'Veuillez sélectionner une salle.',

@@ -4,44 +4,41 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\DTO\CreerSalleDTO;
+use App\DTO\CreerSalleBuilderInterface;
 use App\Exception\SalleAvecReservationsException;
 use App\Exception\SalleNonTrouveeException;
-use App\Service\AutorisationGuard;
-use App\Service\AutorisationService;
-use App\Service\CreerSalleService;
-use App\Service\ModifierSalleService;
-use App\Service\SalleConsultationService;
-use App\Service\SalleValidationService;
-use App\Service\SupprimerSalleService;
-use App\Service\SalleStatistiqueService;
 use App\Renderer\RendererInterface;
+use App\Service\AutorisationServiceInterface;
+use App\Service\CreerSalleServiceInterface;
+use App\Service\ModifierSalleServiceInterface;
+use App\Service\SalleConsultationServiceInterface;
+use App\Service\SalleStatistiqueServiceInterface;
+use App\Service\SupprimerSalleServiceInterface;
+use App\Service\ValidationMessageInterface;
+use App\Validation\SalleValidatorInterface;
 
-class SalleController extends AbstractController
+final class SalleController extends AbstractController
 {
     public function __construct(
-        private SalleConsultationService $salleConsultationService,
-        private SalleValidationService $validationService,
-        private CreerSalleService $creerSalleService,
-        private ModifierSalleService $modifierSalleService,
-        private SupprimerSalleService $supprimerSalleService,
-        private AutorisationService $autorisationService,
-        private AutorisationGuard $autorisationGuard,
-        private SalleStatistiqueService $salleStatistiqueService,
+        private SalleConsultationServiceInterface $salleConsultationService,
+        private SalleValidatorInterface $validator,
+        private ValidationMessageInterface $validationMessage,
+        private CreerSalleBuilderInterface $builder,
+        private CreerSalleServiceInterface $creerSalleService,
+        private ModifierSalleServiceInterface $modifierSalleService,
+        private SupprimerSalleServiceInterface $supprimerSalleService,
+        private AutorisationServiceInterface $autorisationService,
+        private SalleStatistiqueServiceInterface $salleStatistiqueService,
         RendererInterface $renderer
     ) {
-
-     parent::__construct($renderer);
+        parent::__construct($renderer);
     }
 
     public function index(): void
     {
-        $this->autorisationGuard->exigerConnexion();
-
         $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 
         $salles = $this->salleConsultationService->lister($page);
-
         $isAdmin = $this->autorisationService->estAdmin();
 
         $sallesLesPlusUtilisees =
@@ -56,13 +53,10 @@ class SalleController extends AbstractController
 
     public function show(int $id): void
     {
-        $this->autorisationGuard->exigerConnexion();
-
         $salle = $this->salleConsultationService->trouver($id);
 
         if ($salle === null) {
             http_response_code(404);
-
             $this->renderView('error/404');
 
             return;
@@ -75,71 +69,52 @@ class SalleController extends AbstractController
 
     public function create(): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
-        $errors = [];
-        $data = [];
-        $salle = null;
-
         $this->renderView('salle/form', [
-            'errors' => $errors,
-            'data' => $data,
-            'salle' => $salle,
+            'errors' => [],
+            'data' => [],
+            'salle' => null,
         ]);
     }
 
     public function store(): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
         $data = $_POST;
 
         $data['active'] = isset($data['active']);
         $data['capacite'] = (int) ($data['capacite'] ?? 0);
 
-        $result = $this->validationService->valider($data);
+        $result = $this->validator->validate($data);
 
         if (!$result->isValid()) {
-            $errors = $result->errors();
-            $data = $result->data();
-
-            $salle = null;
-
-            $this->renderView('salle/form', [
-                'errors' => $errors,
-                'data' => $data,
-                'salle' => $salle,
-            ]);
+            $this->afficherFormulaire(
+                $result->data(),
+                $this->messages($result->errors()),
+                null
+            );
 
             return;
         }
 
-        $validatedData = $result->data();
-
-        $dto = CreerSalleDTO::fromToErray($validatedData);
+        $dto = $this->builder
+            ->fromArray($result->data())
+            ->build();
 
         $this->creerSalleService->executer($dto);
 
         header('Location: /salles');
-
         exit;
     }
 
     public function edit(int $id): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
         $salle = $this->salleConsultationService->trouver($id);
 
         if ($salle === null) {
             http_response_code(404);
-
             $this->renderView('error/404');
 
             return;
         }
-
-        $errors = [];
 
         $data = [
             'nom' => $salle->nom,
@@ -149,82 +124,59 @@ class SalleController extends AbstractController
             'active' => $salle->active,
         ];
 
-        $action = '/salles/' . $id . '/edit';
-
-        $this->renderView('salle/form', [
-            'errors' => $errors,
-            'data' => $data,
-            'salle' => $salle,
-            'action' => $action,
-        ]);
+        $this->afficherFormulaire($data, [], $salle);
     }
 
     public function update(int $id): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
         $data = $_POST;
 
         $data['active'] = isset($data['active']);
         $data['capacite'] = (int) ($data['capacite'] ?? 0);
 
-        $result = $this->validationService->valider($data);
+        $result = $this->validator->validate($data);
 
         if (!$result->isValid()) {
-            $errors = $result->errors();
-            $data = $result->data();
+            $salle = $this->salleConsultationService->trouver($id);
 
-            $action = '/salles/' . $id . '/edit';
-
-            $this->renderView('salle/form', [
-                'errors' => $errors,
-                'data' => $data,
-                'action' => $action,
-            ]);
+            $this->afficherFormulaire(
+                $result->data(),
+                $this->messages($result->errors()),
+                $salle
+            );
 
             return;
         }
 
-        $validatedData = $result->data();
-
-        $dto = CreerSalleDTO::fromToErray($validatedData);
+        $dto = $this->builder
+            ->fromArray($result->data())
+            ->build();
 
         try {
             $this->modifierSalleService->executer($id, $dto);
 
             header('Location: /salles');
-
             exit;
-        } catch (SalleNonTrouveeException $exception) {
+        } catch (SalleNonTrouveeException) {
             http_response_code(404);
-
             $this->renderView('error/404');
-
-            return;
         }
     }
 
     public function delete(int $id): void
     {
-        $this->autorisationGuard->exigerAdmin();
-
         try {
             $this->supprimerSalleService->executer($id);
 
             header('Location: /salles');
-
             exit;
-        } catch (SalleNonTrouveeException $exception) {
+        } catch (SalleNonTrouveeException) {
             http_response_code(404);
-
             $this->renderView('error/404');
 
             return;
         } catch (SalleAvecReservationsException $exception) {
-            $messageErreur = $exception->getMessage();
-
             $salles = $this->salleConsultationService->lister();
-
             $isAdmin = $this->autorisationService->estAdmin();
 
             $sallesLesPlusUtilisees =
@@ -234,10 +186,34 @@ class SalleController extends AbstractController
                 'salles' => $salles,
                 'isAdmin' => $isAdmin,
                 'sallesLesPlusUtilisees' => $sallesLesPlusUtilisees,
-                'messageErreur' => $messageErreur,
+                'messageErreur' => $exception->getMessage(),
             ]);
-
-            return;
         }
+    }
+
+    private function afficherFormulaire(
+        array $data,
+        array $errors,
+        mixed $salle
+    ): void {
+        $this->renderView('salle/form', [
+            'errors' => $errors,
+            'data' => $data,
+            'salle' => $salle,
+        ]);
+    }
+
+    private function messages(array $errors): array
+    {
+        $messages = [];
+
+        foreach ($errors as $champ => $codes) {
+            $messages[$champ] = $this->validationMessage->message(
+                $champ,
+                $codes
+            );
+        }
+
+        return $messages;
     }
 }

@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Service;
 
 use App\Model\Salle;
 use App\Repository\SalleRepositoryInterface;
 
-class SalleConsultationService
+class SalleConsultationService implements SalleConsultationServiceInterface
 {
     public function __construct(
         private SalleRepositoryInterface $salleRepository

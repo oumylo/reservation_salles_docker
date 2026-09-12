@@ -20,7 +20,12 @@ final class FakeSalleRepository implements SalleRepositoryInterface
         $this->salles[$salle->id] = $salle;
     }
 
-    public function lister(): array
+    public function lister(int $page = 1): array
+    {
+        return array_values($this->salles);
+    }
+
+    public function listerToutes(): array
     {
         return array_values($this->salles);
     }
@@ -42,14 +47,7 @@ final class FakeSalleRepository implements SalleRepositoryInterface
         return false;
     }
 
-    /*
-     * Cette méthode est obligatoire car elle existe
-     * maintenant dans SalleRepositoryInterface.
-     *
-     * Ce faux repository n'est pas utilisé pour les
-     * statistiques dans ces tests, donc on retourne
-     * simplement un tableau vide.
-     */
+
     public function sallesLesPlusUtilisees(): array
     {
         return [];
@@ -67,7 +65,7 @@ final class FakeReservationRepository implements ReservationRepositoryInterface
         $this->conflit = $conflit;
     }
 
-    public function lister(): array
+    public function lister(int $page = 1): array
     {
         return array_values($this->reservations);
     }

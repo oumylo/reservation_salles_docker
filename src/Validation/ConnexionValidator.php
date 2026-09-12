@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Validation;
 
 use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Validator as v;
 
-final class ConnexionValidator implements ValidatorInterface
+final class ConnexionValidator implements ConnexionValidatorInterface
 {
     public function validate(array $data): ValidationResult
     {
@@ -27,10 +25,11 @@ final class ConnexionValidator implements ValidatorInterface
 
                 $regle->assert($data[$champ] ?? null);
 
-            } catch (NestedValidationException $e) {
-
-                $errors[$champ] = $e->getMessages();
-            }
+            } catch (NestedValidationException $exception) {
+    $errors[$champ] = array_keys(
+        $exception->getMessages()
+    );
+}
         }
 
         return new ValidationResult(

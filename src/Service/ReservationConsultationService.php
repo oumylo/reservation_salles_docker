@@ -1,14 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Service;
 
 use App\Model\Reservation;
 use App\Repository\ReservationRepositoryInterface;
 use App\Repository\SalleRepositoryInterface;
 
-class ReservationConsultationService
+class ReservationConsultationService implements ReservationConsultationServiceInterface
 {
     public function __construct(
         private ReservationRepositoryInterface $reservationRepository,
@@ -16,9 +14,9 @@ class ReservationConsultationService
     ) {
     }
 
-    public function lister()
+    public function lister(int $page = 1)
     {
-        return $this->reservationRepository->lister();
+        return $this->reservationRepository->lister($page);
     }
 
     public function trouver(int $id): ?Reservation
@@ -28,6 +26,6 @@ class ReservationConsultationService
 
     public function listerSalles()
     {
-        return $this->salleRepository->lister();
+        return $this->salleRepository->listerToutes();
     }
 }

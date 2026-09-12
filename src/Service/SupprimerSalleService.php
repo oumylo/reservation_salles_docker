@@ -7,7 +7,7 @@ use App\Exception\SalleNonTrouveeException;
 use App\Repository\ReservationRepositoryInterface;
 use App\Repository\SalleRepositoryInterface;
 
-class SupprimerSalleService
+class SupprimerSalleService implements SupprimerSalleServiceInterface
 {
     public function __construct(
         private SalleRepositoryInterface $salleRepository,
@@ -28,7 +28,6 @@ class SupprimerSalleService
         if ($this->reservationRepository->existePourSalle($id)) {
             throw new SalleAvecReservationsException(
                 'Cette salle possède des réservations. '
-                . 'Suppression impossible. '
                 . 'Vous pouvez désactiver la salle à la place.'
             );
         }

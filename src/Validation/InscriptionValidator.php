@@ -1,20 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Validation;
 
 use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Validator as v;
 
-final class SalleValidator implements SalleValidatorInterface
+final class InscriptionValidator implements InscriptionValidatorInterface
 {
-    private const TYPES_AUTORISES = [
-        'cours',
-        'informatique',
-        'laboratoire',
-        'amphitheatre',
-        'reunion',
-    ];
-
     public function validate(array $data): ValidationResult
     {
         $errors = [];
@@ -24,28 +18,34 @@ final class SalleValidator implements SalleValidatorInterface
                 ->notEmpty()
                 ->length(2, 100),
 
-            'batiment' => v::stringType()
+            'email' => v::stringType()
                 ->notEmpty()
-                ->length(2, 100),
+                ->email(),
 
-            'capacite' => v::intVal()
-                ->between(1, 1000),
-
-            'type' => v::in(self::TYPES_AUTORISES),
-
-            'active' => v::boolType(),
+            'password' => v::stringType()
+                ->notEmpty()
+                ->length(8, 255),
         ];
 
         foreach ($rules as $champ => $regle) {
             try {
                 $regle->assert($data[$champ] ?? null);
             } catch (NestedValidationException $exception) {
-
-               
                 $errors[$champ] = array_keys(
                     $exception->getMessages()
                 );
             }
+        }
+
+
+        if (
+            !isset($errors['password'])
+            && (
+                ($data['password'] ?? null)
+                !== ($data['password_confirmation'] ?? null)
+            )
+        ) {
+            $errors['password_confirmation'] = ['confirmation'];
         }
 
         return new ValidationResult(

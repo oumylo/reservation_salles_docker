@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Service;
 
 use App\DTO\CreerSalleDTO;
@@ -9,7 +7,7 @@ use App\Exception\SalleNonTrouveeException;
 use App\Model\Salle;
 use App\Repository\SalleRepositoryInterface;
 
-class ModifierSalleService
+class ModifierSalleService implements ModifierSalleServiceInterface
 {
     public function __construct(
         private SalleRepositoryInterface $salleRepository

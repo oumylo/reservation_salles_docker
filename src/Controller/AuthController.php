@@ -4,31 +4,35 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\DTO\ConnexionDTO;
+use App\DTO\ConnexionBuilderInterface;
+use App\DTO\InscriptionBuilderInterface;
 use App\Exception\AuthentificationException;
-use App\Service\AuthentificationServiceInterface;
-use App\Validation\ConnexionValidator;
+use App\Exception\EmailDejaUtiliseException;
 use App\Renderer\RendererInterface;
+use App\Service\AuthentificationServiceInterface;
+use App\Service\InscriptionServiceInterface;
+use App\Validation\ConnexionValidatorInterface;
+use App\Validation\InscriptionValidatorInterface;
 
-class AuthController extends AbstractController
+final class AuthController extends AbstractController
 {
     public function __construct(
-        private ConnexionValidator $validator,
+        private ConnexionValidatorInterface $validator,
+        private ConnexionBuilderInterface $builder,
         private AuthentificationServiceInterface $authentificationService,
+        private InscriptionValidatorInterface $inscriptionValidator,
+        private InscriptionBuilderInterface $inscriptionBuilder,
+        private InscriptionServiceInterface $inscriptionService,
         RendererInterface $renderer
     ) {
-
         parent::__construct($renderer);
     }
 
     public function login(): void
     {
-        $errors = [];
-        $data = [];
-
         $this->renderView('auth/login', [
-            'errors' => $errors,
-            'data' => $data,
+            'errors' => [],
+            'data' => [],
         ]);
     }
 
@@ -39,37 +43,29 @@ class AuthController extends AbstractController
         $result = $this->validator->validate($data);
 
         if (!$result->isValid()) {
-            $errors = $result->errors();
-            $data = $result->data();
-
             $this->renderView('auth/login', [
-                'errors' => $errors,
-                'data' => $data,
+                'errors' => $result->errors(),
+                'data' => $result->data(),
             ]);
 
             return;
         }
 
-        $validatedData = $result->data();
-
-        $dto = ConnexionDTO::fromToErray($validatedData);
+        $dto = $this->builder
+            ->fromArray($result->data())
+            ->build();
 
         try {
             $this->authentificationService->connecter($dto);
 
             header('Location: /salles');
-
             exit;
         } catch (AuthentificationException $exception) {
-            $errors = [
-                'authentification' => $exception->getMessage()
-            ];
-
-            $data = $validatedData;
-
             $this->renderView('auth/login', [
-                'errors' => $errors,
-                'data' => $data,
+                'errors' => [
+                    'authentification' => $exception->getMessage(),
+                ],
+                'data' => $result->data(),
             ]);
         }
     }
@@ -80,7 +76,48 @@ class AuthController extends AbstractController
         session_destroy();
 
         header('Location: /login');
-
         exit;
+    }
+
+    public function register(): void
+    {
+        $this->renderView('auth/register', [
+            'errors' => [],
+            'data' => [],
+        ]);
+    }
+
+    public function storeRegister(): void
+    {
+        $data = $_POST;
+
+        $result = $this->inscriptionValidator->validate($data);
+
+        if (!$result->isValid()) {
+            $this->renderView('auth/register', [
+                'errors' => $result->errors(),
+                'data' => $result->data(),
+            ]);
+
+            return;
+        }
+
+        $dto = $this->inscriptionBuilder
+            ->fromArray($result->data())
+            ->build();
+
+        try {
+            $this->inscriptionService->executer($dto);
+
+            header('Location: /login');
+            exit;
+        } catch (EmailDejaUtiliseException $exception) {
+            $this->renderView('auth/register', [
+                'errors' => [
+                    'email' => [$exception->getMessage()],
+                ],
+                'data' => $result->data(),
+            ]);
+        }
     }
 }
