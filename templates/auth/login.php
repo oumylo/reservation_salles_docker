@@ -18,8 +18,8 @@ $title = 'Connexion';
         max-width: 420px;
         background-color: white;
         padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
         border: 1px solid #e5e7eb;
     }
 
@@ -141,57 +141,105 @@ $title = 'Connexion';
         text-decoration: underline;
     }
 
-    /* Comptes de démonstration */
-    .demo-accounts {
-        margin-top: 25px;
-        padding: 18px;
-        background-color: #f8fafc;
-        border: 1px solid #dbeafe;
-        border-radius: 10px;
+    /* ==============================
+       COMPTES DE DÉMONSTRATION
+       ============================== */
+
+    .demo-section {
+        margin-top: 30px;
+        padding-top: 25px;
+        border-top: 1px solid #e5e7eb;
     }
 
-    .demo-accounts h2 {
-        margin: 0 0 8px;
-        color: #1e3a8a;
+    .demo-header {
+        text-align: center;
+        margin-bottom: 16px;
+    }
+
+    .demo-header h2 {
+        margin: 0 0 6px;
+        color: #111827;
         font-size: 17px;
-        text-align: center;
+        font-weight: 700;
     }
 
-    .demo-accounts-intro {
-        margin: 0 0 15px;
-        color: #64748b;
+    .demo-header p {
+        margin: 0;
+        color: #6b7280;
         font-size: 13px;
-        text-align: center;
     }
 
     .demo-account {
-        padding: 12px;
+        position: relative;
+        padding: 15px 16px;
         margin-top: 10px;
-        background-color: white;
+        background-color: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 7px;
+        border-radius: 9px;
     }
 
-    .demo-account strong {
-        display: block;
-        margin-bottom: 7px;
-        color: #334155;
+    .demo-account:hover {
+        border-color: #bfdbfe;
+        background-color: #f8fbff;
+    }
+
+    .demo-account-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 11px;
+        color: #1e293b;
         font-size: 14px;
+        font-weight: 700;
     }
 
-    .demo-account p {
-        margin: 4px 0;
-        color: #475569;
+    .demo-account-title .icon {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #dbeafe;
+        border-radius: 7px;
+        font-size: 15px;
+    }
+
+    .demo-account-info {
+        display: grid;
+        grid-template-columns: 90px 1fr;
+        gap: 6px;
+        margin: 0;
         font-size: 13px;
+    }
+
+    .demo-account-info dt {
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .demo-account-info dd {
+        margin: 0;
+        color: #334155;
         word-break: break-word;
     }
 
-    .demo-account span {
-        font-weight: 600;
-        color: #1e293b;
+    .demo-password {
+        font-family: monospace;
+        background-color: #eef2ff;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #3730a3;
+    }
+
+    .demo-note {
+        margin: 14px 0 0;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 11px;
     }
 
     @media (max-width: 500px) {
+
         .login-page {
             padding: 25px 15px;
         }
@@ -203,16 +251,22 @@ $title = 'Connexion';
         .login-header h1 {
             font-size: 24px;
         }
+
+        .demo-account-info {
+            grid-template-columns: 75px 1fr;
+        }
     }
 </style>
 
 <div class="login-page">
 
+```
 <div class="login-card">
 
     <div class="login-brand" aria-hidden="true">
         GS
     </div>
+
 
     <div class="login-header">
 
@@ -240,7 +294,6 @@ $title = 'Connexion';
 
     <form method="POST" action="/login">
 
-
         <div class="form-group">
 
             <label for="email">
@@ -256,7 +309,6 @@ $title = 'Connexion';
                 ) ?>"
                 placeholder="exemple@email.com"
             >
-
 
             <?php if (!empty($errors['email'])): ?>
 
@@ -286,7 +338,6 @@ $title = 'Connexion';
                 placeholder="Votre mot de passe"
             >
 
-
             <?php if (!empty($errors['password'])): ?>
 
                 <?php foreach ($errors['password'] as $error): ?>
@@ -311,60 +362,110 @@ $title = 'Connexion';
 
 
         <div class="login-footer">
-            Pas encore de compte ?
-            <a href="/register">S'inscrire</a>
-        </div>
 
+            Pas encore de compte ?
+
+            <a href="/register">
+                S'inscrire
+            </a>
+
+        </div>
 
     </form>
 
 
     <!--
         Comptes de démonstration destinés au professeur.
-
         Ces comptes permettent de tester rapidement
-        les différentes fonctionnalités de l'application.
+        les différents rôles de l'application.
     -->
-    <div class="demo-accounts">
 
-        <h2>🔑 Comptes de démonstration</h2>
+    <div class="demo-section">
 
-        <p class="demo-accounts-intro">
-            Utilisez ces comptes pour tester les différents espaces.
+        <div class="demo-header">
+
+            <h2>Comptes de démonstration</h2>
+
+            <p>
+                Utilisez l'un de ces comptes pour tester l'application.
+            </p>
+
+        </div>
+
+
+        <div class="demo-account">
+
+            <div class="demo-account-title">
+
+                <div class="icon">
+                    👑
+                </div>
+
+                Administrateur
+
+            </div>
+
+
+            <dl class="demo-account-info">
+
+                <dt>Email</dt>
+
+                <dd>
+                    admin@example.com
+                </dd>
+
+
+                <dt>Mot de passe</dt>
+
+                <dd>
+                    <span class="demo-password">
+                        admin123
+                    </span>
+                </dd>
+
+            </dl>
+
+        </div>
+
+
+        <div class="demo-account">
+
+            <div class="demo-account-title">
+
+                <div class="icon">
+                    👤
+                </div>
+
+                Responsable
+
+            </div>
+
+
+            <dl class="demo-account-info">
+
+                <dt>Email</dt>
+
+                <dd>
+                    responsable@example.com
+                </dd>
+
+
+                <dt>Mot de passe</dt>
+
+                <dd>
+                    <span class="demo-password">
+                        responsable123
+                    </span>
+                </dd>
+
+            </dl>
+
+        </div>
+
+
+        <p class="demo-note">
+            Comptes fournis uniquement pour la démonstration du projet.
         </p>
-
-        <div class="demo-account">
-
-            <strong>👑 Administrateur</strong>
-
-            <p>
-                <span>Email :</span>
-                admin@example.com
-            </p>
-
-            <p>
-                <span> Mot de passe:</span>
-               admin123
-            </p>
-
-        </div>
-
-
-        <div class="demo-account">
-
-            <strong>👤 Responsable</strong>
-
-            <p>
-                <span>Email :</span>
-                responsable@example.com
-            </p>
-
-            <p>
-                <span>Mot de passe :</span>
-                responsable123
-            </p>
-
-        </div>
 
     </div>
 
