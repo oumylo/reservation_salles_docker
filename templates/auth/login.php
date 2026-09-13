@@ -141,6 +141,56 @@ $title = 'Connexion';
         text-decoration: underline;
     }
 
+    /* Comptes de démonstration */
+    .demo-accounts {
+        margin-top: 25px;
+        padding: 18px;
+        background-color: #f8fafc;
+        border: 1px solid #dbeafe;
+        border-radius: 10px;
+    }
+
+    .demo-accounts h2 {
+        margin: 0 0 8px;
+        color: #1e3a8a;
+        font-size: 17px;
+        text-align: center;
+    }
+
+    .demo-accounts-intro {
+        margin: 0 0 15px;
+        color: #64748b;
+        font-size: 13px;
+        text-align: center;
+    }
+
+    .demo-account {
+        padding: 12px;
+        margin-top: 10px;
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 7px;
+    }
+
+    .demo-account strong {
+        display: block;
+        margin-bottom: 7px;
+        color: #334155;
+        font-size: 14px;
+    }
+
+    .demo-account p {
+        margin: 4px 0;
+        color: #475569;
+        font-size: 13px;
+        word-break: break-word;
+    }
+
+    .demo-account span {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
     @media (max-width: 500px) {
         .login-page {
             padding: 25px 15px;
@@ -156,119 +206,169 @@ $title = 'Connexion';
     }
 </style>
 
-
 <div class="login-page">
 
-    <div class="login-card">
+<div class="login-card">
 
-        <div class="login-brand" aria-hidden="true">
-            GS
+    <div class="login-brand" aria-hidden="true">
+        GS
+    </div>
+
+    <div class="login-header">
+
+        <h1>Connexion</h1>
+
+        <p>
+            Connectez-vous à votre espace de gestion.
+        </p>
+
+    </div>
+
+
+    <?php if (!empty($errors['authentification'])): ?>
+
+        <div class="login-error">
+
+            <?= htmlspecialchars(
+                $errors['authentification']
+            ) ?>
+
         </div>
 
-        <div class="login-header">
+    <?php endif; ?>
 
-            <h1>Connexion</h1>
+
+    <form method="POST" action="/login">
+
+
+        <div class="form-group">
+
+            <label for="email">
+                Email
+            </label>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="<?= htmlspecialchars(
+                    $data['email'] ?? ''
+                ) ?>"
+                placeholder="exemple@email.com"
+            >
+
+
+            <?php if (!empty($errors['email'])): ?>
+
+                <?php foreach ($errors['email'] as $error): ?>
+
+                    <p class="field-error">
+                        <?= htmlspecialchars($error) ?>
+                    </p>
+
+                <?php endforeach; ?>
+
+            <?php endif; ?>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label for="password">
+                Mot de passe
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Votre mot de passe"
+            >
+
+
+            <?php if (!empty($errors['password'])): ?>
+
+                <?php foreach ($errors['password'] as $error): ?>
+
+                    <p class="field-error">
+                        <?= htmlspecialchars($error) ?>
+                    </p>
+
+                <?php endforeach; ?>
+
+            <?php endif; ?>
+
+        </div>
+
+
+        <button
+            type="submit"
+            class="login-button"
+        >
+            Se connecter
+        </button>
+
+
+        <div class="login-footer">
+            Pas encore de compte ?
+            <a href="/register">S'inscrire</a>
+        </div>
+
+
+    </form>
+
+
+    <!--
+        Comptes de démonstration destinés au professeur.
+
+        Ces comptes permettent de tester rapidement
+        les différentes fonctionnalités de l'application.
+    -->
+    <div class="demo-accounts">
+
+        <h2>🔑 Comptes de démonstration</h2>
+
+        <p class="demo-accounts-intro">
+            Utilisez ces comptes pour tester les différents espaces.
+        </p>
+
+        <div class="demo-account">
+
+            <strong>👑 Administrateur</strong>
 
             <p>
-                Connectez-vous à votre espace de gestion.
+                <span>Email :</span>
+                admin@example.com
+            </p>
+
+            <p>
+                <span>Mot de passe :</span>
+                À REMPLACER
             </p>
 
         </div>
 
 
-        <?php if (!empty($errors['authentification'])): ?>
+        <div class="demo-account">
 
-            <div class="login-error">
+            <strong>👤 Responsable</strong>
 
-                <?= htmlspecialchars(
-                    $errors['authentification']
-                ) ?>
+            <p>
+                <span>Email :</span>
+                responsable@example.com
+            </p>
 
-            </div>
+            <p>
+                <span>Mot de passe :</span>
+                À REMPLACER
+            </p>
 
-        <?php endif; ?>
-
-
-        <form method="POST" action="/login">
-
-
-            <div class="form-group">
-
-                <label for="email">
-                    Email
-                </label>
-
-                <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value="<?= htmlspecialchars(
-                        $data['email'] ?? ''
-                    ) ?>"
-                    placeholder="exemple@email.com"
-                >
-
-
-                <?php if (!empty($errors['email'])): ?>
-
-                    <?php foreach ($errors['email'] as $error): ?>
-
-                        <p class="field-error">
-                            <?= htmlspecialchars($error) ?>
-                        </p>
-
-                    <?php endforeach; ?>
-
-                <?php endif; ?>
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label for="password">
-                    Mot de passe
-                </label>
-
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Votre mot de passe"
-                >
-
-
-                <?php if (!empty($errors['password'])): ?>
-
-                    <?php foreach ($errors['password'] as $error): ?>
-
-                        <p class="field-error">
-                            <?= htmlspecialchars($error) ?>
-                        </p>
-
-                    <?php endforeach; ?>
-
-                <?php endif; ?>
-
-            </div>
-
-
-            <button
-                type="submit"
-                class="login-button"
-            >
-                Se connecter
-            </button>
-
-
-            <div class="login-footer">
-                Pas encore de compte ?
-                <a href="/register">S'inscrire</a>
-            </div>
-
-
-        </form>
+        </div>
 
     </div>
+
+</div>
+
 
 </div>
