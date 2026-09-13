@@ -343,8 +343,8 @@ $title = 'Connexion';
             </p>
 
             <p>
-                <span>Mot de passe :</span>
-                À REMPLACER
+                <span> Mot de passe:</span>
+               admin123
             </p>
 
         </div>
@@ -361,7 +361,7 @@ $title = 'Connexion';
 
             <p>
                 <span>Mot de passe :</span>
-                À REMPLACER
+                responsable123
             </p>
 
         </div>
